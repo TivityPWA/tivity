@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>TIVITY | Bullet Productivity</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3590/3590412.png">
+    
+    <!-- Use Google Fonts for dynamic aesthetics: Space Grotesk is great for brutalism -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="neo-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h1 style="margin:0;">TIVITY</h1>
+                <p style="margin:0;">Track your daily metrics aggressively.</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button onclick="exportAllData()" style="padding:8px 14px; background:#fff; border:3px solid #000; font-family:inherit; font-weight:bold; font-size:0.75rem; cursor:pointer; box-shadow:3px 3px 0 #000;">⬇️ BACKUP</button>
+                <button onclick="importAllData()" style="padding:8px 14px; background:var(--primary); border:3px solid #000; font-family:inherit; font-weight:bold; font-size:0.75rem; cursor:pointer; box-shadow:3px 3px 0 #000;">⬆️ RESTORE</button>
+            </div>
+        </header>
+
+        <nav class="neo-nav">
+            <div class="nav-dropdown">
+                <button class="nav-btn active" data-tab="entry-tab">Journal</button>
+                <div class="dropdown-content">
+                    <button class="dropdown-item" onclick="showHistoryTab()">History</button>
+                    <button class="dropdown-item" onclick="showAnalysisTab()">Analysis</button>
+                </div>
+            </div>
+            <div class="nav-dropdown">
+                <button class="nav-btn" data-tab="todo-tab">Tasks</button>
+                <div class="dropdown-content">
+                    <button class="dropdown-item" onclick="showTasksOnly()">Open Tasks</button>
+                    <button class="dropdown-item" onclick="showTagPerformance()">Tag Performance</button>
+                </div>
+            </div>
+            <div class="nav-dropdown">
+                <button class="nav-btn" data-tab="education-tab">Education</button>
+            </div>
+        </nav>
+
+        <main class="neo-main">
+            <!-- DAILY ENTRY TAB -->
+            <section id="entry-tab" class="tab-content active">
+                <!-- QUICK NOTEPAD -->
+                <div class="notepad-card" style="background:#fff; border:4px solid #000; padding:15px; margin-bottom:20px; box-shadow:8px 8px 0 #000;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #000; padding-bottom:10px; margin-bottom:10px;">
+                        <h2 style="margin:0; font-size:1.5rem; text-transform:uppercase;">Quick Notepad</h2>
+                        <span id="notepad-status" style="font-size:0.8rem; font-weight:bold; color:var(--secondary);"></span>
+                    </div>
+                    <textarea id="quick-notepad" rows="4" style="width:100%; box-sizing:border-box; border:none; resize:vertical; font-family:inherit; font-size:1.1rem; background:transparent; outline:none;" placeholder="Jot down ideas, scratchpad notes, or brain dumps here..."></textarea>
+                </div>
+
+                <!-- CLOUD SYNC (New Location) -->
+                <div class="analysis-card" style="margin-bottom:30px; background:#f0f0ff; border:4px solid #5500ff; color:#000; box-shadow:8px 8px 0 #5500ff;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h2 style="margin:0; color:#5500ff; font-size:1.4rem;">CLOUD SYNC (FIREBASE)</h2>
+                        <span id="cloud-status-badge" style="background:#5500ff; color:#fff; padding:4px 10px; font-weight:bold; font-size:0.7rem; border-radius:2px;">CONNECTED</span>
+                    </div>
+                    <p style="margin:0 0 15px 0; font-size:0.9rem;">Your data is automatically mirrored to the Google Cloud. Use this ID to sync your phone.</p>
+                    
+                    <div style="background:#fff; padding:15px; border:2px solid #000; margin-bottom:15px;">
+                        <label style="font-size:0.7rem; font-weight:900; color:#888; text-transform:uppercase; letter-spacing:1px;">Private Sync ID</label>
+                        <div style="display:flex; gap:10px; margin-top:5px;">
+                            <input type="text" id="sync-id-display" readonly style="flex:1; padding:10px; font-family:monospace; font-weight:bold; border:2px solid #000; background:#eee; font-size:0.9rem;">
+                            <button class="todo-btn" onclick="copySyncID()" style="background:#5500ff; color:#fff; border:2px solid #000;">COPY</button>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:10px;">
+                        <button class="todo-btn" onclick="promptChangeSyncID()" style="flex:1; background:#fff; border-color:#5500ff;">CHANGE ID</button>
+                        <button class="todo-btn" onclick="location.reload()" style="flex:1; background:#5500ff; color:#fff;">FORCE REFRESH</button>
+                    </div>
+                </div>
+
+                <form id="daily-form" class="neo-form">
+                    <div class="form-header">
+                        <h2>Log Today's Reality</h2>
+                        <input type="date" id="entry-date" required>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Core Reflection</h3>
+                        <div class="field-group">
+                            <label for="summary">Summary of my day</label>
+                            <textarea id="summary" rows="3" required placeholder="What happened today?"></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="obstacle">Biggest obstacle that day</label>
+                            <textarea id="obstacle" rows="2" placeholder="What stood in your way?"></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="learned">What I learned today</label>
+                            <textarea id="learned" rows="2" placeholder="Key insights..."></textarea>
+                        </div>
+                        <div class="field-group">
+                            <label for="bravery">Bravery & Risk</label>
+                            <input type="text" id="bravery" placeholder="Did I do something new or take a risk?">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Mental & Emotional State</h3>
+                        <div class="grid-2">
+                            <div class="field-group">
+                                <label for="mood">Overall Mood</label>
+                                <input type="text" id="mood" placeholder="e.g., Anxious, joyful, flat...">
+                            </div>
+                            <div class="field-group">
+                                <label for="energy">Energy Level (1-10)</label>
+                                <input type="number" id="energy" min="1" max="10" placeholder="1 = Dead, 10 = Electric">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field-group">
+                                <label for="stress_level">Stress Level (1-10)</label>
+                                <input type="number" id="stress_level" min="1" max="10" placeholder="1 = Zen, 10 = Max Panic">
+                            </div>
+                            <div class="field-group">
+                                <label for="stress_source">Source of Stress</label>
+                                <input type="text" id="stress_source" placeholder="What's stressing you?">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field-group">
+                                <label for="alignment">Alignment Score (1-10)</label>
+                                <input type="number" id="alignment" min="1" max="10" placeholder="Did you live aligned with highest values?">
+                            </div>
+                            <div class="field-group">
+                                <label for="fin_stress">Financial Stress Level (1-10)</label>
+                                <input type="number" id="fin_stress" min="1" max="10" placeholder="Money anxiety levels?">
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label for="self-talk">Inner self talk</label>
+                            <select id="self-talk">
+                                <option value="positive">Highly Positive</option>
+                                <option value="neutral" selected>Neutral / Balanced</option>
+                                <option value="negative">Negative / Critical</option>
+                                <option value="mixed">Mixed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Positives & Attraction</h3>
+                        <div class="grid-2">
+                            <div class="field-group">
+                                <label for="attract">Things I want to attract</label>
+                                <textarea id="attract" rows="2" placeholder="Goals, vibes, people..."></textarea>
+                            </div>
+                            <div class="field-group">
+                                <label for="good-deeds">Good deeds done</label>
+                                <textarea id="good-deeds" rows="2" placeholder="How did you help?"></textarea>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field-group">
+                                <label for="good_events">Good Events</label>
+                                <textarea id="good_events" rows="2" placeholder="What went well today?"></textarea>
+                            </div>
+                            <div class="field-group">
+                                <label for="serendipity">Serendipity</label>
+                                <textarea id="serendipity" rows="2" placeholder="Random magic moments..."></textarea>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field-group">
+                                <label for="opportunities">Unexpected Opportunities</label>
+                                <textarea id="opportunities" rows="2" placeholder="What surprising doors opened?"></textarea>
+                            </div>
+                            <div class="field-group">
+                                <label for="meaningful_moment">Most Meaningful Moment</label>
+                                <textarea id="meaningful_moment" rows="2" placeholder="The highlight of the day was..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Physical & Health</h3>
+                        <div class="grid-has-3">
+                            <div class="field-group">
+                                <label for="sleep">Sleep (Hours)</label>
+                                <input type="number" id="sleep" step="0.5" placeholder="e.g. 7.5">
+                            </div>
+                            <div class="field-group">
+                                <label for="meditation">Meditation (Mins)</label>
+                                <input type="number" id="meditation" step="5" placeholder="e.g. 20">
+                            </div>
+                            <div class="field-group">
+                                <label for="exercise">Exercise (Type/Mins)</label>
+                                <input type="text" id="exercise" placeholder="e.g. Weights 45m">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field-group">
+                                <label for="food">Food times / Diet</label>
+                                <input type="text" id="food" placeholder="e.g. 10am, 2pm, 7pm">
+                            </div>
+                            <div class="field-group">
+                                <label for="supplements">Supplements taken</label>
+                                <input type="text" id="supplements" placeholder="e.g. Vitamin D, Magnesium">
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label for="body_signals">Body Signals</label>
+                            <textarea id="body_signals" rows="2" placeholder="Pains, aches, or tensions..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Environment & Output</h3>
+                        <div class="grid-2">
+                            <div class="field-group">
+                                <label for="location">Where did I spend my day?</label>
+                                <input type="text" id="location" placeholder="e.g. Home, Office, Cafe...">
+                            </div>
+                            <div class="field-group">
+                                <label for="nature">Nature Exposure</label>
+                                <input type="text" id="nature" placeholder="e.g. Walk in park, 30m">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field-group">
+                                <label for="screen_time">Screen Time</label>
+                                <input type="text" id="screen_time" placeholder="e.g. 6.5 hours">
+                            </div>
+                            <div class="field-group">
+                                <label for="creative">Creative Output</label>
+                                <input type="text" id="creative" placeholder="e.g. Coded for 2hr, highly satisfied">
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label for="social">Social Interaction</label>
+                            <textarea id="social" rows="2" placeholder="e.g. 3 hrs, with John, energizing..."></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">SAVE ENTRY</button>
+                </form>
+            </section>
+
+            <!-- TASKS TAB -->
+            <section id="todo-tab" class="tab-content">
+                <div class="todo-header">
+                    <h2>Mission Control</h2>
+                    <p>Categorize and crush your tasks.</p>
+                </div>
+
+                <form id="todo-form" class="todo-entry-form">
+                    <div class="todo-form-main">
+                        <div class="field-group">
+                            <label for="todo-input">New Task</label>
+                            <input type="text" id="todo-input" placeholder="What needs to be done?" required>
+                        </div>
+                        <div class="field-group">
+                            <label for="todo-priority">Priority</label>
+                            <select id="todo-priority">
+                                <!-- Options will be dynamic -->
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="todo-due-date">Due Date</label>
+                            <input type="date" id="todo-due-date">
+                        </div>
+                    </div>
+                    
+                    <div class="todo-form-extra">
+                        <div class="field-group">
+                            <label for="todo-tags">Tag / Habit</label>
+                            <select id="todo-tags" class="tag-select" style="padding:10px; border:2px solid #000; font-family:'Space Grotesk', sans-serif;">
+                                <option value="">No Tag</option>
+                                <!-- Options injected by JS -->
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="todo-desc">Description</label>
+                            <textarea id="todo-desc" rows="2" placeholder="Full task details..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="todo-add-btn">ADD TO MISSION CONTROL</button>
+                </form>
+
+                <div class="todo-controls">
+                    <div class="todo-filters" id="todo-filters">
+                        <button class="filter-btn active" data-filter="all">ALL</button>
+                        <!-- Dynamic priority filters -->
+                    </div>
+                    <button id="manage-labels-btn" class="todo-btn">MANAGE LABELS</button>
+                    <button id="manage-tags-btn" class="todo-btn">MANAGE TAGS</button>
+                    <button id="toggle-completed-btn" class="todo-btn" style="background:var(--secondary); color:#fff;">COMPLETED</button>
+                </div>
+
+                <div id="tag-manager" class="label-manager hidden">
+                    <h3>Configure Your Default Tags</h3>
+                    <div id="default-tag-list" class="todo-tags" style="margin-bottom:20px;"></div>
+                    <div class="field-group">
+                        <input type="text" id="new-tag-input" placeholder="Enter new tag name...">
+                        <button id="add-tag-btn" class="todo-btn" style="background:var(--success); margin-top:10px;">+ ADD TAG</button>
+                    </div>
+                </div>
+
+                <div id="label-manager" class="label-manager hidden">
+                    <h3>Configure Your Priority Levels</h3>
+                    <div id="label-list"></div>
+                    <button id="add-label-btn" class="todo-btn" style="background:var(--success);">+ NEW LABEL</button>
+                </div>
+
+                <div id="todo-list" class="todo-list">
+                    <!-- Tasks will be injected here -->
+                </div>
+
+                <div id="completed-section" class="hidden">
+                    <div class="todo-header" style="margin-top:50px; background:var(--secondary);">
+                        <h2>Completed Missions</h2>
+                        <p>Archive of your crushed objectives.</p>
+                    </div>
+                    <div id="completed-list" class="todo-list">
+                        <!-- Completed tasks will be injected here -->
+                    </div>
+                </div>
+                
+                <!-- CALENDAR TOGGLE -->
+                <div style="margin-top: 50px; text-align: center; border-top: 4px solid #000; padding-top: 40px;">
+                    <button id="toggle-calendar-btn" class="submit-btn" style="width: auto; padding: 15px 30px;">OPEN AERIAL VIEW</button>
+                </div>
+
+                <!-- AERIAL VIEW CALENDAR -->
+                <div id="calendar-view" style="margin-top:20px; display: none;">
+                    <div class="todo-header" style="background:#000; color:#fff; display:flex; justify-content:space-between; align-items:center;">
+                        <h2 style="margin:0;">Aerial View</h2>
+                        <div>
+                            <button id="cal-prev" class="todo-btn" style="color:#000; padding:5px 15px;">&lt;</button>
+                            <span id="cal-month-year" style="font-weight:bold; margin:0 15px; font-size:1.2rem;">Month Year</span>
+                            <button id="cal-next" class="todo-btn" style="color:#000; padding:5px 15px;">&gt;</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Calendar Days injected via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- STATS TAB -->
+            <section id="stats-tab" class="tab-content">
+                <div class="todo-header" style="background:var(--tertiary); color:#fff;">
+                    <h2>Tag Performance</h2>
+                    <p>Track your wins by category.</p>
+                </div>
+                <div id="tag-performance-selector" class="todo-tags" style="margin-top:20px; justify-content:center;">
+                    <!-- Tag chips will be injected here -->
+                </div>
+                <div id="tag-dashboard" style="margin-top:30px;">
+                    <!-- Dashboard content will be injected here -->
+                </div>
+            </section>
+
+
+
+            <!-- HISTORY TAB -->
+            <section id="history-tab" class="tab-content">
+                <h2>History Log</h2>
+                <div id="history-list" class="history-grid">
+                    <!-- Cards will be injected here -->
+                </div>
+            </section>
+
+            <!-- ANALYSIS TAB -->
+            <section id="analysis-tab" class="tab-content">
+                <div class="analysis-card">
+                    <h2>AI Pattern Recognition</h2>
+                    <p>Aggregates your entries and uses Gemini to analyze patterns over time.</p>
+                    
+                    <div class="date-range-selector">
+                        <div>
+                            <label>From: <input type="date" id="analyze-start"></label>
+                        </div>
+                        <div>
+                            <label>To: <input type="date" id="analyze-end"></label>
+                        </div>
+                    </div>
+
+                    <div class="field-group" style="background:#fff; padding:15px; border:var(--border-width) solid #000; color:#000; margin-bottom:20px;">
+                        <label for="gemini-key" style="background:var(--secondary);">GEMINI API KEY</label>
+                        <input type="password" id="gemini-key" placeholder="Paste your API key here..." required style="width:100%; box-sizing:border-box; margin-top:5px;">
+                        <p style="font-size:0.9rem; margin-top:10px; font-weight:bold;"><em>Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--tertiary);">Google AI Studio</a>. This stays entirely local on your machine.</em></p>
+                    </div>
+                    
+                    <div style="display:flex; gap:15px; margin-top:20px;">
+                        <button id="analyze-btn" class="analyze-btn" style="flex:2; margin-top:0;">ANALYZE PATTERNS</button>
+                        <button id="demo-data-btn" class="demo-btn" style="flex:1; background:#000; color:#fff; align-self:flex-end; border:var(--border-width) solid #000; padding:20px; font-size:1.4rem; font-family:inherit; font-weight:700; text-transform:uppercase; cursor:pointer; box-shadow:8px 8px 0 var(--secondary); transition: all 0.2s ease;">LOAD DEMO DATA</button>
+                    </div>
+                    
+                    <div id="analysis-result" class="analysis-result hidden">
+                        <h3>Analysis Output</h3>
+                        <div class="result-content" id="result-content"></div>
+                    </div>
+                </div>
+
+                <!-- DATA MANAGEMENT -->
+                <div class="analysis-card" style="margin-top:30px; background:var(--bg-color); color:#000;">
+                    <h2>Manual Backup</h2>
+                    <p>Save a copy of your data to your Google Drive or iCloud for safe keeping.</p>
+                    <div style="display:flex; gap:15px; margin-top:20px;">
+                        <button class="analyze-btn" onclick="exportData()" style="background:#fff; font-size:1.2rem; flex:1; margin-top:0;">EXPORT</button>
+                        <button class="analyze-btn" onclick="document.getElementById('import-input').click()" style="background:#fff; font-size:1.2rem; flex:1; margin-top:0;">IMPORT</button>
+                        <input type="file" id="import-input" class="hidden" onchange="importData(event)" accept=".json">
+                    </div>
+                </div>
+
+                </div>
+
+                <!-- CLOUD SYNC (Moved to Entry Tab) -->
+            </section>
+
+            <!-- EDUCATION TAB -->
+            <section id="education-tab" class="tab-content">
+                <div class="todo-header" style="background:var(--success); color:#000;">
+                    <h2>Education</h2>
+                    <p>Continuous learning and knowledge tracking.</p>
+                </div>
+                
+                <div id="education-sections-container">
+                    <!-- Vocabulary Section -->
+                    <div class="education-card" id="edu-section-vocab">
+                        <div class="edu-card-header">
+                            <h3>Vocabulary</h3>
+                            <button id="edu-new-vocab-btn" class="todo-btn" style="background:var(--secondary); color:#fff;" onclick="getNewEduItem('vocab')">NEW WORD</button>
+                        </div>
+                        <div id="vocab-content" class="edu-content-area hidden"></div>
+                        <div class="edu-test-area">
+                            <h4>Test Your Knowledge</h4>
+                            <div style="display:flex; gap:10px;">
+                                <input type="text" id="vocab-test-input" placeholder="e.g. 'Test me on recent words'">
+                                <button class="todo-btn" onclick="runEduTest('vocab')">TEST ME</button>
+                            </div>
+                            <div id="vocab-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Language Section -->
+                    <div class="education-card" id="edu-section-spanish">
+                        <div class="edu-card-header">
+                            <h3>Language (Spanish)</h3>
+                            <button id="edu-new-spanish-btn" class="todo-btn" style="background:var(--tertiary); color:#fff;" onclick="getNewEduItem('spanish')">NEW WORD</button>
+                        </div>
+                        <div id="spanish-content" class="edu-content-area hidden"></div>
+                        <div class="edu-test-area">
+                            <h4>Test Your Knowledge</h4>
+                            <div style="display:flex; gap:10px;">
+                                <input type="text" id="spanish-test-input" placeholder="e.g. 'Test my conversational Spanish'">
+                                <button class="todo-btn" onclick="runEduTest('spanish')">TEST ME</button>
+                            </div>
+                            <div id="spanish-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Subjects to Study Section -->
+                    <div class="education-card" id="edu-section-subject">
+                        <div class="edu-card-header">
+                            <h3>Subjects to Study</h3>
+                        </div>
+                        <form id="subject-form" class="todo-entry-form" style="padding:15px; margin-bottom: 15px;">
+                            <div class="field-group" style="margin-bottom:10px;">
+                                <input type="text" id="subject-title" placeholder="Subject or Book Title" required>
+                            </div>
+                            <div class="field-group" style="margin-bottom:10px;">
+                                <input type="date" id="subject-date">
+                            </div>
+                            <button type="submit" class="todo-btn" style="background:var(--success); width:100%;">ADD SUBJECT</button>
+                        </form>
+                        <div id="subjects-list" class="todo-list">
+                            <!-- Subjects injected here -->
+                        </div>
+                        
+                        <div class="edu-test-area" style="margin-top:20px;">
+                            <h4>Test Your Knowledge</h4>
+                            <div style="display:flex; gap:10px;">
+                                <input type="text" id="subject-test-input" placeholder="e.g. 'Quiz me on my subjects'">
+                                <button class="todo-btn" onclick="runEduTest('subject')">TEST ME</button>
+                            </div>
+                            <div id="subject-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- General Add Button -->
+                <div style="margin-top:30px; text-align:center;">
+                    <button id="edu-add-custom-btn" class="todo-btn" style="width:100%; max-width:400px; border-style:dashed; padding:15px; font-size:1.2rem;" onclick="addCustomEducationSection()">+ ADD NEW EDUCATION CATEGORY</button>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyAQLLgEQGRHgCyp7Rvh7GRlFewDBBuo_IA",
+          authDomain: "tivity-f562d.firebaseapp.com",
+          projectId: "tivity-f562d",
+          storageBucket: "tivity-f562d.firebasestorage.app",
+          messagingSenderId: "608535099122",
+          appId: "1:608535099122:web:8c841926617f834372826b",
+          measurementId: "G-30VNB3KHHB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Make Firebase available to the rest of the app
+        window.firebaseDB = db;
+        window.firestore = { collection, addDoc, getDocs, query, where, doc, setDoc, deleteDoc, onSnapshot };
+        console.log("TIVITY: Firebase Cloud Brain Initialized.");
+    </script>
+
+    <script src="target_engine.js?v=25"></script>
+</body>
+</html>
