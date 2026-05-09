@@ -930,7 +930,37 @@ function initApp() {
     const manageLabelsBtn = document.getElementById('manage-labels-btn');
     if (manageLabelsBtn) {
         manageLabelsBtn.addEventListener('click', () => {
-            document.getElementById('label-manager').classList.toggle('hidden');
+            const mgr = document.getElementById('label-manager');
+            mgr.classList.toggle('hidden');
+            // Close the other manager if open
+            document.getElementById('tag-manager').classList.add('hidden');
+        });
+    }
+
+    const manageTagsBtn = document.getElementById('manage-tags-btn');
+    if (manageTagsBtn) {
+        manageTagsBtn.addEventListener('click', () => {
+            const mgr = document.getElementById('tag-manager');
+            mgr.classList.toggle('hidden');
+            // Close the other manager if open
+            document.getElementById('label-manager').classList.add('hidden');
+        });
+    }
+
+    const toggleCompletedBtn = document.getElementById('toggle-completed-btn');
+    if (toggleCompletedBtn) {
+        toggleCompletedBtn.addEventListener('click', () => {
+            document.getElementById('completed-section').classList.toggle('hidden');
+        });
+    }
+
+    const toggleJournalBtn = document.getElementById('toggle-journal-form-btn');
+    if (toggleJournalBtn) {
+        toggleJournalBtn.addEventListener('click', () => {
+            const container = document.getElementById('journal-form-container');
+            const isHidden = container.classList.toggle('hidden');
+            toggleJournalBtn.textContent = isHidden ? '+ NEW JOURNAL ENTRY' : '✕ CLOSE JOURNAL FORM';
+            toggleJournalBtn.style.background = isHidden ? 'var(--tertiary)' : '#000';
         });
     }
 
@@ -940,13 +970,7 @@ function initApp() {
             const id = 'custom-' + Date.now();
             priorities.push({ id, name: 'NEW LEVEL', color: '#cccccc' });
             savePriorities();
-        });
-    }
-
-    const manageTagsBtn = document.getElementById('manage-tags-btn');
-    if (manageTagsBtn) {
-        manageTagsBtn.addEventListener('click', () => {
-            document.getElementById('tag-manager').classList.toggle('hidden');
+            renderPriorityUI();
         });
     }
 
@@ -958,7 +982,10 @@ function initApp() {
                 defaultTags.push(name.toUpperCase());
                 saveDefaultTags();
                 document.getElementById('new-tag-input').value = '';
+                renderPriorityUI();
             }
+        });
+    }            }
         });
     }
 
