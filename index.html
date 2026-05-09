@@ -17,14 +17,12 @@
 </head>
 <body>
     <div class="app-container">
-        <header class="neo-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>
-                <h1 style="margin:0;">TIVITY</h1>
-                <p style="margin:0;">Track your daily metrics aggressively.</p>
-            </div>
-            <div style="display:flex; gap:8px;">
-                <button onclick="exportAllData()" style="padding:8px 14px; background:#fff; border:3px solid #000; font-family:inherit; font-weight:bold; font-size:0.75rem; cursor:pointer; box-shadow:3px 3px 0 #000;">⬇️ BACKUP</button>
-                <button onclick="importAllData()" style="padding:8px 14px; background:var(--primary); border:3px solid #000; font-family:inherit; font-weight:bold; font-size:0.75rem; cursor:pointer; box-shadow:3px 3px 0 #000;">⬆️ RESTORE</button>
+        <header class="neo-header">
+            <h1 style="margin:0;">TIVITY</h1>
+            <p style="margin:0;">Track your daily metrics aggressively.</p>
+            <div class="header-btn-row">
+                <button onclick="exportAllData()" style="background:#fff;">⬇️ BACKUP</button>
+                <button onclick="importAllData()" style="background:var(--primary);">⬆️ RESTORE</button>
             </div>
         </header>
 
@@ -58,28 +56,6 @@
                         <span id="notepad-status" style="font-size:0.8rem; font-weight:bold; color:var(--secondary);"></span>
                     </div>
                     <textarea id="quick-notepad" rows="4" style="width:100%; box-sizing:border-box; border:none; resize:vertical; font-family:inherit; font-size:1.1rem; background:transparent; outline:none;" placeholder="Jot down ideas, scratchpad notes, or brain dumps here..."></textarea>
-                </div>
-
-                <!-- CLOUD SYNC (New Location) -->
-                <div class="analysis-card" style="margin-bottom:30px; background:#f0f0ff; border:4px solid #5500ff; color:#000; box-shadow:8px 8px 0 #5500ff;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h2 style="margin:0; color:#5500ff; font-size:1.4rem;">CLOUD SYNC (FIREBASE)</h2>
-                        <span id="cloud-status-badge" style="background:#5500ff; color:#fff; padding:4px 10px; font-weight:bold; font-size:0.7rem; border-radius:2px;">CONNECTED</span>
-                    </div>
-                    <p style="margin:0 0 15px 0; font-size:0.9rem;">Your data is automatically mirrored to the Google Cloud. Use this ID to sync your phone.</p>
-                    
-                    <div style="background:#fff; padding:15px; border:2px solid #000; margin-bottom:15px;">
-                        <label style="font-size:0.7rem; font-weight:900; color:#888; text-transform:uppercase; letter-spacing:1px;">Private Sync ID</label>
-                        <div style="display:flex; gap:10px; margin-top:5px;">
-                            <input type="text" id="sync-id-display" readonly style="flex:1; padding:10px; font-family:monospace; font-weight:bold; border:2px solid #000; background:#eee; font-size:0.9rem;">
-                            <button class="todo-btn" onclick="copySyncID()" style="background:#5500ff; color:#fff; border:2px solid #000;">COPY</button>
-                        </div>
-                    </div>
-
-                    <div style="display:flex; gap:10px;">
-                        <button class="todo-btn" onclick="promptChangeSyncID()" style="flex:1; background:#fff; border-color:#5500ff;">CHANGE ID</button>
-                        <button class="todo-btn" onclick="location.reload()" style="flex:1; background:#5500ff; color:#fff;">FORCE REFRESH</button>
-                    </div>
                 </div>
 
                 <form id="daily-form" class="neo-form">
@@ -390,15 +366,14 @@
                         </div>
                     </div>
 
-                    <div class="field-group" style="background:#fff; padding:15px; border:var(--border-width) solid #000; color:#000; margin-bottom:20px;">
+                    <div class="field-group" style="background:#f4f4f4; padding:15px; border:var(--border-width) solid #000; color:#000; margin-bottom:20px;">
                         <label for="gemini-key" style="background:var(--secondary);">GEMINI API KEY</label>
-                        <input type="password" id="gemini-key" placeholder="Paste your API key here..." required style="width:100%; box-sizing:border-box; margin-top:5px;">
-                        <p style="font-size:0.9rem; margin-top:10px; font-weight:bold;"><em>Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--tertiary);">Google AI Studio</a>. This stays entirely local on your machine.</em></p>
+                        <input type="password" id="gemini-key" placeholder="Paste your API key here..." required style="width:100%; box-sizing:border-box; margin-top:5px; padding:12px; border:2px solid #000;">
+                        <p style="font-size:0.8rem; margin-top:10px; font-weight:bold;"><em>Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--tertiary);">Google AI Studio</a>. This stays entirely local on your machine.</em></p>
                     </div>
                     
-                    <div style="display:flex; gap:15px; margin-top:20px;">
-                        <button id="analyze-btn" class="analyze-btn" style="flex:2; margin-top:0;">ANALYZE PATTERNS</button>
-                        <button id="demo-data-btn" class="demo-btn" style="flex:1; background:#000; color:#fff; align-self:flex-end; border:var(--border-width) solid #000; padding:20px; font-size:1.4rem; font-family:inherit; font-weight:700; text-transform:uppercase; cursor:pointer; box-shadow:8px 8px 0 var(--secondary); transition: all 0.2s ease;">LOAD DEMO DATA</button>
+                    <div style="display:flex; justify-content:center; margin-top:20px;">
+                        <button id="analyze-btn" class="analyze-btn" style="width:100%; max-width:400px; margin-top:0;">ANALYZE PATTERNS</button>
                     </div>
                     
                     <div id="analysis-result" class="analysis-result hidden">
@@ -407,20 +382,29 @@
                     </div>
                 </div>
 
-                <!-- DATA MANAGEMENT -->
-                <div class="analysis-card" style="margin-top:30px; background:var(--bg-color); color:#000;">
-                    <h2>Manual Backup</h2>
-                    <p>Save a copy of your data to your Google Drive or iCloud for safe keeping.</p>
-                    <div style="display:flex; gap:15px; margin-top:20px;">
-                        <button class="analyze-btn" onclick="exportData()" style="background:#fff; font-size:1.2rem; flex:1; margin-top:0;">EXPORT</button>
-                        <button class="analyze-btn" onclick="document.getElementById('import-input').click()" style="background:#fff; font-size:1.2rem; flex:1; margin-top:0;">IMPORT</button>
-                        <input type="file" id="import-input" class="hidden" onchange="importData(event)" accept=".json">
+
+
+                <!-- CLOUD SYNC -->
+                <div class="cloud-sync-card" style="margin-top:30px;">
+                    <div class="cloud-sync-header">
+                        <h2 style="margin:0; color:#5500ff;">CLOUD SYNC (FIREBASE)</h2>
+                        <span id="cloud-status-badge" style="background:#5500ff; color:#fff; padding:4px 10px; font-weight:bold; font-size:0.7rem;">CONNECTED</span>
+                    </div>
+                    <p style="margin:0 0 15px 0; font-size:0.9rem;">Your data is automatically mirrored to the Google Cloud. Use this ID to sync your phone.</p>
+                    <div style="background:#fff; padding:15px; border:2px solid #000; margin-bottom:15px;">
+                        <label style="font-size:0.7rem; font-weight:900; color:#888; text-transform:uppercase; letter-spacing:1px;">Private Sync ID</label>
+                        <div class="sync-id-row">
+                            <input type="text" id="sync-id-display" readonly style="flex:1; min-width:0; padding:10px; font-family:monospace; font-weight:bold; border:2px solid #000; background:#eee; font-size:0.85rem;">
+                            <button class="todo-btn" onclick="copySyncID()" style="background:#5500ff; color:#fff; border:2px solid #000; white-space:nowrap;">COPY</button>
+                        </div>
+                    </div>
+                    <div class="sync-btn-row">
+                        <button class="todo-btn" onclick="promptChangeSyncID()" style="flex:1; background:#fff; border-color:#5500ff;">CHANGE ID</button>
+                        <button class="todo-btn" onclick="location.reload()" style="flex:1; background:#5500ff; color:#fff;">FORCE REFRESH</button>
                     </div>
                 </div>
 
                 </div>
-
-                <!-- CLOUD SYNC (Moved to Entry Tab) -->
             </section>
 
             <!-- EDUCATION TAB -->
@@ -528,6 +512,6 @@
         console.log("TIVITY: Firebase Cloud Brain Initialized.");
     </script>
 
-    <script src="target_engine.js?v=25"></script>
+    <script src="target_engine.js?v=28"></script>
 </body>
 </html>

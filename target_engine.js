@@ -849,29 +849,50 @@ function initApp() {
     const tabContents = document.querySelectorAll('.tab-content');
 
     navBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            const parent = btn.closest('.nav-dropdown');
+            const isShowing = parent?.classList.contains('show');
+
+            // 1. Handle Dropdown Toggling
+            document.querySelectorAll('.nav-dropdown').forEach(nd => nd.classList.remove('show'));
+            if (parent && !isShowing) {
+                parent.classList.add('show');
+            }
+
+            // 2. Handle Tab Switching (only if button has data-tab)
             const tabId = btn.getAttribute('data-tab');
-            console.log(`TIVITY: Switching to tab -> ${tabId}`);
+            if (tabId) {
+                console.log(`TIVITY: Switching to tab -> ${tabId}`);
+                navBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                
+                btn.classList.add('active');
+                const targetTab = document.getElementById(tabId);
+                if (targetTab) {
+                    targetTab.classList.add('active');
+                }
 
-            navBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(tc => tc.classList.remove('active'));
-            
-            btn.classList.add('active');
-            const targetTab = document.getElementById(tabId);
-            if (targetTab) {
-                targetTab.classList.add('active');
-            }
-
-            if (tabId === 'history-tab') {
-                renderHistory();
-            }
-            if (tabId === 'todo-tab') {
-                renderPriorityUI();
-                renderTasks();
-                renderCompletedTasks();
-                initDragAndDrop();
+                if (tabId === 'history-tab') {
+                    renderHistory();
+                }
+                if (tabId === 'todo-tab') {
+                    renderPriorityUI();
+                    renderTasks();
+                    renderCompletedTasks();
+                    initDragAndDrop();
+                }
             }
         });
+    });
+
+    // Close dropdowns on item click or click outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.nav-dropdown')) {
+            document.querySelectorAll('.nav-dropdown').forEach(nd => nd.classList.remove('show'));
+        }
+        if (e.target.closest('.dropdown-item')) {
+            document.querySelectorAll('.nav-dropdown').forEach(nd => nd.classList.remove('show'));
+        }
     });
 
     // To-Do Logic
