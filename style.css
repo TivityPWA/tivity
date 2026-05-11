@@ -29,6 +29,18 @@ body {
   margin: 0 auto;
 }
 
+.hidden { display: none !important; }
+
+.pulse {
+  animation: pulse-animation 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-animation {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
 /* Header - Responsive */
 .neo-header {
   background: var(--primary);
@@ -292,39 +304,27 @@ body {
 /* Todo Controls */
 .todo-controls {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 15px;
 }
 
-#todo-filters, .todo-tags {
+#todo-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  width: 100%;
+  flex: 1;
 }
 
 .filter-btn {
   background: #fff;
   border: 2px solid #000;
-  padding: 4px 10px;
+  padding: 5px 8px;
   font-size: 0.7rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 2px 2px 0 #000;
   text-transform: uppercase;
-}
-
-.todo-btn {
-  flex: none; /* Don't grow to fill space */
-  min-width: auto;
-  padding: 4px 10px;
-  font-size: 0.7rem;
-  border: 2px solid #000;
-  background: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 2px 2px 0 #000;
 }
 
 .filter-btn.active {
@@ -473,14 +473,49 @@ body {
   border: 2px solid #000;
 }
 
-.cal-day {
+.calendar-day {
+  background: #ffffff !important;
+  color: #000000 !important;
+  padding: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-height: 80px;
+  border: 1px solid #000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendar-day-header {
+  background: #000 !important;
+  color: #fff !important;
+  padding: 8px 2px;
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  font-weight: 900;
+  border: 1px solid #000;
+}
+
+.calendar-day.empty {
+  background: #f8f8f8 !important;
+}
+
+.calendar-date-number {
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+  opacity: 0.5;
+}
+
+.calendar-task {
+  font-size: 0.6rem;
+  padding: 3px 5px;
   background: #fff;
-  aspect-ratio: 1 / 1;
-  padding: 3px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  position: relative;
-  min-height: 45px;
+  border: 1px solid #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 1px 1px 0 #000;
 }
 
 /* Dropdown styling */

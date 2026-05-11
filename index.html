@@ -19,8 +19,51 @@
     <div class="app-container">
         <header class="neo-header">
             <h1 style="margin:0;">TIVITY</h1>
-            <p style="margin:0;">Track your daily metrics aggressively.</p>
+
+            <div style="margin-top:10px;">
+                <button id="toggle-key-data-btn" style="background:#000; color:#fff; font-size:0.65rem; padding:4px 10px; font-weight:bold; border:2px solid #000; cursor:pointer; text-transform:uppercase;">⚙️ KEY & DATA</button>
+            </div>
         </header>
+
+        <!-- GLOBAL KEY & DATA PANEL -->
+        <div id="key-data-container" class="hidden" style="margin: 10px 15px; background:#fff; z-index:1000;">
+            <!-- AI API SETUP -->
+            <div class="notepad-card" style="background:#f4f4f4; border:3px solid #000; margin-bottom:20px;">
+                <div class="field-group" style="margin-bottom:0;">
+                    <label for="gemini-key" style="background:var(--secondary);">GEMINI API KEY</label>
+                    <input type="password" id="gemini-key" placeholder="Paste your API key here..." required style="width:100%; box-sizing:border-box; margin-top:5px; padding:12px; border:2px solid #000;">
+                    <p style="font-size:0.7rem; margin-top:10px; font-weight:bold;"><em>Required for AI Analysis. Stays local.</em></p>
+                </div>
+            </div>
+
+            <!-- CLOUD SYNC -->
+            <div class="cloud-sync-card" style="background:#fff; border:3px solid #5500ff; padding:15px;">
+                <div class="cloud-sync-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h2 style="margin:0; color:#5500ff; font-size:1.1rem;">CLOUD SYNC</h2>
+                    <span id="cloud-status-badge" style="background:#5500ff; color:#fff; padding:4px 8px; font-weight:bold; font-size:0.6rem;">CONNECTED</span>
+                </div>
+                <div style="background:#f0f0ff; padding:10px; border:2px solid #5500ff; margin-bottom:10px;">
+                    <label style="font-size:0.6rem; font-weight:900; color:#5500ff; text-transform:uppercase;">Private Sync ID</label>
+                    <div style="display:flex; gap:5px; margin-top:5px;">
+                        <input type="text" id="sync-id-display" readonly style="flex:1; min-width:0; padding:8px; font-family:monospace; font-size:0.75rem; border:1px solid #5500ff;">
+                        <button class="todo-btn" onclick="copySyncID()" style="background:#5500ff; color:#fff; font-size:0.7rem; padding:0 10px;">COPY</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="todo-btn" onclick="promptChangeSyncID()" style="flex:1; background:#fff; border:1px solid #5500ff; font-size:0.7rem;">CHANGE ID</button>
+                    <button class="todo-btn" onclick="location.reload()" style="flex:1; background:#5500ff; color:#fff; font-size:0.7rem;">REFRESH</button>
+                </div>
+            </div>
+
+            <!-- MANUAL BACKUP -->
+            <div class="notepad-card" style="margin-top:20px; background:#fff; border:3px solid #000;">
+                <div style="font-size:0.7rem; font-weight:900; letter-spacing:1px; margin-bottom:10px;">MANUAL BACKUP (OFFLINE)</div>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="exportAllData()" style="flex:1; background:#eee; border:2px solid #000; padding:10px; font-size:0.8rem; font-weight:bold;">⬇️ EXPORT</button>
+                    <button onclick="importAllData()" style="flex:1; background:var(--primary); border:2px solid #000; padding:10px; font-size:0.8rem; font-weight:bold;">⬆️ IMPORT</button>
+                </div>
+            </div>
+        </div>
 
         <nav class="neo-nav">
             <div class="nav-dropdown">
@@ -33,7 +76,7 @@
             <div class="nav-dropdown">
                 <button class="nav-btn" data-tab="todo-tab">Tasks</button>
                 <div class="dropdown-content">
-                    <button class="dropdown-item" onclick="showTasksOnly()">Open Tasks</button>
+
                     <button class="dropdown-item" onclick="showTagPerformance()">Tag Performance</button>
                 </div>
             </div>
@@ -223,103 +266,66 @@
 
                     <button type="submit" class="submit-btn">SAVE ENTRY</button>
                 </form>
-                </div>
-
-                <!-- CONSOLIDATED KEY & DATA -->
-                <div style="margin-top:30px; text-align:center;">
-                    <button id="toggle-key-data-btn" class="submit-btn" style="background:#000; color:#fff; font-size:0.8rem; padding:8px 15px; display:inline-block; width:auto; border:2px solid #000;">⚙️ KEY & DATA</button>
-                </div>
-
-                <div id="key-data-container" class="hidden" style="margin-top:15px;">
-                    <!-- AI API SETUP -->
-                    <div class="notepad-card" style="background:#f4f4f4; border:3px solid #000; margin-bottom:20px;">
-                        <div class="field-group" style="margin-bottom:0;">
-                            <label for="gemini-key" style="background:var(--secondary);">GEMINI API KEY</label>
-                            <input type="password" id="gemini-key" placeholder="Paste your API key here..." required style="width:100%; box-sizing:border-box; margin-top:5px; padding:12px; border:2px solid #000;">
-                            <p style="font-size:0.7rem; margin-top:10px; font-weight:bold;"><em>Required for AI Analysis. Stays local.</em></p>
-                        </div>
-                    </div>
-
-                    <!-- CLOUD SYNC -->
-                    <div class="cloud-sync-card" style="background:#fff; border:3px solid #5500ff; padding:15px;">
-                        <div class="cloud-sync-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <h2 style="margin:0; color:#5500ff; font-size:1.1rem;">CLOUD SYNC</h2>
-                            <span id="cloud-status-badge" style="background:#5500ff; color:#fff; padding:4px 8px; font-weight:bold; font-size:0.6rem;">CONNECTED</span>
-                        </div>
-                        <div style="background:#f0f0ff; padding:10px; border:2px solid #5500ff; margin-bottom:10px;">
-                            <label style="font-size:0.6rem; font-weight:900; color:#5500ff; text-transform:uppercase;">Private Sync ID</label>
-                            <div style="display:flex; gap:5px; margin-top:5px;">
-                                <input type="text" id="sync-id-display" readonly style="flex:1; min-width:0; padding:8px; font-family:monospace; font-size:0.75rem; border:1px solid #5500ff;">
-                                <button class="todo-btn" onclick="copySyncID()" style="background:#5500ff; color:#fff; font-size:0.7rem; padding:0 10px;">COPY</button>
-                            </div>
-                        </div>
-                        <div style="display:flex; gap:10px;">
-                            <button class="todo-btn" onclick="promptChangeSyncID()" style="flex:1; background:#fff; border:1px solid #5500ff; font-size:0.7rem;">CHANGE ID</button>
-                            <button class="todo-btn" onclick="location.reload()" style="flex:1; background:#5500ff; color:#fff; font-size:0.7rem;">REFRESH</button>
-                        </div>
-                    </div>
-
-                    <!-- MANUAL BACKUP -->
-                    <div class="notepad-card" style="margin-top:20px; background:#fff; border:3px solid #000;">
-                        <div style="font-size:0.7rem; font-weight:900; letter-spacing:1px; margin-bottom:10px;">MANUAL BACKUP (OFFLINE)</div>
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="exportAllData()" style="flex:1; background:#eee; border:2px solid #000; padding:10px; font-size:0.8rem; font-weight:bold;">⬇️ EXPORT</button>
-                            <button onclick="importAllData()" style="flex:1; background:var(--primary); border:2px solid #000; padding:10px; font-size:0.8rem; font-weight:bold;">⬆️ IMPORT</button>
-                        </div>
-                    </div>
-                </div>
             </section>
 
             <!-- TASKS TAB -->
             <section id="todo-tab" class="tab-content">
-                <div class="todo-header">
-                    <h2>Mission Control</h2>
-                    <p>Categorize and crush your tasks.</p>
+
+
+                <!-- TOGGLE TASK FORM -->
+                <div style="text-align:center; margin-bottom:40px;">
+                    <button id="toggle-todo-form-btn" class="submit-btn" style="background:var(--success); color:#000; width:auto; padding:10px 25px; font-size:0.9rem;">+ NEW TASK</button>
                 </div>
 
-                <form id="todo-form" class="todo-entry-form">
-                    <div class="todo-form-main">
-                        <div class="field-group">
-                            <label for="todo-input">New Task</label>
-                            <input type="text" id="todo-input" placeholder="What needs to be done?" required>
+                <div id="todo-form-container" class="hidden">
+                    <form id="todo-form" class="todo-entry-form">
+                        <div class="todo-form-main">
+                            <div class="field-group">
+                                <label for="todo-input">New Task</label>
+                                <input type="text" id="todo-input" placeholder="What needs to be done?" required>
+                            </div>
+                            <div class="field-group">
+                                <label for="todo-priority">Priority</label>
+                                <select id="todo-priority">
+                                    <!-- Options will be dynamic -->
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label for="todo-due-date">Due Date</label>
+                                <input type="date" id="todo-due-date">
+                            </div>
                         </div>
-                        <div class="field-group">
-                            <label for="todo-priority">Priority</label>
-                            <select id="todo-priority">
-                                <!-- Options will be dynamic -->
-                            </select>
+                        
+                        <div class="todo-form-extra">
+                            <div class="field-group">
+                                <label for="todo-tags">Tag / Habit</label>
+                                <select id="todo-tags" class="tag-select" style="padding:10px; border:2px solid #000; font-family:'Space Grotesk', sans-serif;">
+                                    <option value="">No Tag</option>
+                                    <!-- Options injected by JS -->
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label for="todo-desc">Description</label>
+                                <textarea id="todo-desc" rows="2" placeholder="Full task details..."></textarea>
+                            </div>
                         </div>
-                        <div class="field-group">
-                            <label for="todo-due-date">Due Date</label>
-                            <input type="date" id="todo-due-date">
-                        </div>
-                    </div>
-                    
-                    <div class="todo-form-extra">
-                        <div class="field-group">
-                            <label for="todo-tags">Tag / Habit</label>
-                            <select id="todo-tags" class="tag-select" style="padding:10px; border:2px solid #000; font-family:'Space Grotesk', sans-serif;">
-                                <option value="">No Tag</option>
-                                <!-- Options injected by JS -->
-                            </select>
-                        </div>
-                        <div class="field-group">
-                            <label for="todo-desc">Description</label>
-                            <textarea id="todo-desc" rows="2" placeholder="Full task details..."></textarea>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="todo-add-btn">ADD TO MISSION CONTROL</button>
-                </form>
+                        <button type="submit" class="todo-add-btn" style="margin-bottom:25px;">ADD TASK</button>
+                    </form>
+                </div>
 
-                <div class="todo-controls">
-                    <div class="todo-filters" id="todo-filters">
+                <div class="todo-filters-container">
+                    <div class="todo-filters" id="todo-filters" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:15px;">
                         <button class="filter-btn active" data-filter="all">ALL</button>
                         <!-- Dynamic priority filters -->
                     </div>
-                    <button id="manage-labels-btn" class="todo-btn">MANAGE LABELS</button>
-                    <button id="manage-tags-btn" class="todo-btn">MANAGE TAGS</button>
-                    <button id="toggle-completed-btn" class="todo-btn" style="background:var(--secondary); color:#fff;">COMPLETED</button>
+                </div>
+
+
+
+                <div id="todo-tools-container" class="hidden" style="margin-bottom:20px; display:flex; flex-wrap:wrap; gap:8px;">
+                    <button id="manage-labels-btn" class="todo-btn" style="flex:1;">MANAGE LABELS</button>
+                    <button id="manage-tags-btn" class="todo-btn" style="flex:1;">MANAGE TAGS</button>
+                    <button id="toggle-completed-btn" class="todo-btn" style="flex:1; background:var(--secondary); color:#fff;">COMPLETED</button>
                 </div>
 
                 <div id="tag-manager" class="label-manager hidden">
@@ -353,13 +359,13 @@
                 
                 <!-- CALENDAR TOGGLE -->
                 <div style="margin-top: 50px; text-align: center; border-top: 4px solid #000; padding-top: 40px;">
-                    <button id="toggle-calendar-btn" class="submit-btn" style="width: auto; padding: 15px 30px;">OPEN AERIAL VIEW</button>
+                    <button id="toggle-calendar-btn" class="submit-btn" style="width: auto; padding: 15px 30px;">OPEN CALENDAR</button>
                 </div>
 
                 <!-- AERIAL VIEW CALENDAR -->
                 <div id="calendar-view" style="margin-top:20px; display: none;">
                     <div class="todo-header" style="background:#000; color:#fff; display:flex; justify-content:space-between; align-items:center;">
-                        <h2 style="margin:0;">Aerial View</h2>
+                        <h2 style="margin:0;">Calendar</h2>
                         <div>
                             <button id="cal-prev" class="todo-btn" style="color:#000; padding:5px 15px;">&lt;</button>
                             <span id="cal-month-year" style="font-weight:bold; margin:0 15px; font-size:1.2rem;">Month Year</span>
@@ -448,14 +454,14 @@
                                 <h3 style="margin:0;">Vocabulary</h3>
                                 <span id="vocab-model-badge" class="model-indicator" style="background:#000; color:#fff; padding:2px 6px; font-size:0.6rem; border:1px solid #000; font-weight:bold;">AI 3.0</span>
                             </div>
-                            <button id="edu-new-vocab-btn" class="todo-btn" style="background:var(--secondary); color:#fff;" onclick="getNewEduItem('vocab')">NEW WORD</button>
+                            <button id="edu-new-vocab-btn" class="todo-btn" style="background:var(--secondary); color:#fff; flex:none; width:auto; white-space:nowrap;" onclick="getNewEduItem('vocab')">NEW WORD</button>
                         </div>
                         <div id="vocab-content" class="edu-content-area hidden"></div>
                         <div class="edu-test-area">
                             <h4>Test Your Knowledge</h4>
                             <div style="display:flex; gap:10px;">
-                                <input type="text" id="vocab-test-input" placeholder="e.g. 'Test me on recent words'">
-                                <button class="todo-btn" onclick="runEduTest('vocab')">TEST ME</button>
+                                <input type="text" id="vocab-test-input" placeholder="e.g. 'Test me on recent words'" style="flex:1;">
+                                <button class="todo-btn" style="flex:none; width:auto; white-space:nowrap;" onclick="runEduTest('vocab')">TEST ME</button>
                             </div>
                             <div id="vocab-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
                         </div>
@@ -468,14 +474,14 @@
                                 <h3 style="margin:0;">Spanish</h3>
                                 <span id="spanish-model-badge" class="model-indicator" style="background:#000; color:#fff; padding:2px 6px; font-size:0.6rem; border:1px solid #000; font-weight:bold;">AI 3.0</span>
                             </div>
-                            <button id="edu-new-spanish-btn" class="todo-btn" style="background:var(--tertiary); color:#fff;" onclick="getNewEduItem('spanish')">NEW WORD</button>
+                            <button id="edu-new-spanish-btn" class="todo-btn" style="background:var(--tertiary); color:#fff; flex:none; width:auto; white-space:nowrap;" onclick="getNewEduItem('spanish')">NEW WORD</button>
                         </div>
                         <div id="spanish-content" class="edu-content-area hidden"></div>
                         <div class="edu-test-area">
                             <h4>Test Your Knowledge</h4>
                             <div style="display:flex; gap:10px;">
-                                <input type="text" id="spanish-test-input" placeholder="e.g. 'Test my conversational Spanish'">
-                                <button class="todo-btn" onclick="runEduTest('spanish')">TEST ME</button>
+                                <input type="text" id="spanish-test-input" placeholder="e.g. 'Test my conversational Spanish'" style="flex:1;">
+                                <button class="todo-btn" style="flex:none; width:auto; white-space:nowrap;" onclick="runEduTest('spanish')">TEST ME</button>
                             </div>
                             <div id="spanish-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
                         </div>
@@ -545,6 +551,6 @@
         console.log("TIVITY: Firebase Cloud Brain Initialized.");
     </script>
 
-    <script src="target_engine.js?v=37"></script>
+    <script src="target_engine.js?v=52"></script>
 </body>
 </html>
