@@ -848,6 +848,24 @@ function initApp() {
     const navBtns = document.querySelectorAll('.nav-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    const toggleFormBtn = document.getElementById('toggle-form-btn');
+    const formContainer = document.getElementById('form-container');
+    if (toggleFormBtn && formContainer) {
+        toggleFormBtn.addEventListener('click', () => {
+            formContainer.classList.toggle('hidden');
+            toggleFormBtn.textContent = formContainer.classList.contains('hidden') ? '+ NEW JOURNAL ENTRY' : '- CLOSE FORM';
+        });
+    }
+
+    const toggleKeyDataBtn = document.getElementById('toggle-key-data-btn');
+    const keyDataContainer = document.getElementById('key-data-container');
+    if (toggleKeyDataBtn && keyDataContainer) {
+        toggleKeyDataBtn.addEventListener('click', () => {
+            keyDataContainer.classList.toggle('hidden');
+            toggleKeyDataBtn.textContent = keyDataContainer.classList.contains('hidden') ? '⚙️ KEY & DATA' : '✖️ CLOSE SETTINGS';
+        });
+    }
+
     navBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             const parent = btn.closest('.nav-dropdown');
@@ -930,37 +948,7 @@ function initApp() {
     const manageLabelsBtn = document.getElementById('manage-labels-btn');
     if (manageLabelsBtn) {
         manageLabelsBtn.addEventListener('click', () => {
-            const mgr = document.getElementById('label-manager');
-            mgr.classList.toggle('hidden');
-            // Close the other manager if open
-            document.getElementById('tag-manager').classList.add('hidden');
-        });
-    }
-
-    const manageTagsBtn = document.getElementById('manage-tags-btn');
-    if (manageTagsBtn) {
-        manageTagsBtn.addEventListener('click', () => {
-            const mgr = document.getElementById('tag-manager');
-            mgr.classList.toggle('hidden');
-            // Close the other manager if open
-            document.getElementById('label-manager').classList.add('hidden');
-        });
-    }
-
-    const toggleCompletedBtn = document.getElementById('toggle-completed-btn');
-    if (toggleCompletedBtn) {
-        toggleCompletedBtn.addEventListener('click', () => {
-            document.getElementById('completed-section').classList.toggle('hidden');
-        });
-    }
-
-    const toggleJournalBtn = document.getElementById('toggle-journal-form-btn');
-    if (toggleJournalBtn) {
-        toggleJournalBtn.addEventListener('click', () => {
-            const container = document.getElementById('journal-form-container');
-            const isHidden = container.classList.toggle('hidden');
-            toggleJournalBtn.textContent = isHidden ? '+ NEW JOURNAL ENTRY' : '✕ CLOSE JOURNAL FORM';
-            toggleJournalBtn.style.background = isHidden ? 'var(--tertiary)' : '#000';
+            document.getElementById('label-manager').classList.toggle('hidden');
         });
     }
 
@@ -970,7 +958,13 @@ function initApp() {
             const id = 'custom-' + Date.now();
             priorities.push({ id, name: 'NEW LEVEL', color: '#cccccc' });
             savePriorities();
-            renderPriorityUI();
+        });
+    }
+
+    const manageTagsBtn = document.getElementById('manage-tags-btn');
+    if (manageTagsBtn) {
+        manageTagsBtn.addEventListener('click', () => {
+            document.getElementById('tag-manager').classList.toggle('hidden');
         });
     }
 
@@ -982,10 +976,7 @@ function initApp() {
                 defaultTags.push(name.toUpperCase());
                 saveDefaultTags();
                 document.getElementById('new-tag-input').value = '';
-                renderPriorityUI();
             }
-        });
-    }            }
         });
     }
 
@@ -1076,6 +1067,15 @@ function initApp() {
             };
             saveEntry(entry);
             alert('ENTRY SAVED AGGRESSIVELY! GREAT JOB.');
+            
+            // Auto-hide after save
+            const formContainer = document.getElementById('form-container');
+            const toggleFormBtn = document.getElementById('toggle-form-btn');
+            if (formContainer) formContainer.classList.add('hidden');
+            if (toggleFormBtn) toggleFormBtn.textContent = '+ NEW JOURNAL ENTRY';
+            
+            document.getElementById('daily-form').reset();
+            document.getElementById('entry-date').valueAsDate = new Date();
         });
     }
 
@@ -1115,32 +1115,39 @@ function initApp() {
 
             async function runAnalysis() {
                 try {
-                    // Step 1: Discover available models
-                    console.log("TIVITY: Discovering models...");
+                    contentDiv.innerHTML = `<div class="pulse" style="padding:20px; font-weight:bold; background:var(--secondary); color:#fff;">Finding your best AI model...</div>`;
+                    
+                    // Step 1: Discover what you actually have access to
                     const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
                     const modelsData = await modelsRes.json();
                     
-                    if (!modelsData.models || modelsData.models.length === 0) {
-                        throw new Error("No models found for this API key. Check your key in AI Studio.");
+                    if (!modelsData.models) throw new Error("Could not list models. Check your API key.");
+
+                    // Find the best Flash model (prefer 3, then 2, then 1.5)
+                    const supported = modelsData.models.filter(m => m.supportedGenerationMethods.includes('generateContent'));
+                    const bestModel = supported.find(m => m.name.includes('flash') && m.name.includes('3')) || 
+                                      supported.find(m => m.name.includes('flash') && m.name.includes('2')) || 
+                                      supported.find(m => m.name.includes('flash')) || 
+                                      supported[0];
+
+                    if (!bestModel) throw new Error("No compatible AI models found.");
+                    
+                    const shortName = bestModel.name.split('/').pop();
+                    console.log(`TIVITY: Selected best model -> ${shortName}`);
+                    
+                    const badge = document.getElementById('active-model-badge');
+                    if (badge) {
+                        badge.textContent = shortName;
+                        badge.style.background = 'var(--success)';
                     }
 
-                    // Find a suitable Flash model, or any model that supports generateContent
-                    const supportedModels = modelsData.models.filter(m => m.supportedGenerationMethods.includes('generateContent'));
-                    const bestModel = supportedModels.find(m => m.name.includes('flash') && m.name.includes('3')) || 
-                                      supportedModels.find(m => m.name.includes('flash')) || 
-                                      supportedModels[0];
+                    contentDiv.innerHTML = `<div class="pulse" style="padding:20px; font-weight:bold; background:var(--secondary); color:#fff;">Analyzing with ${shortName}...</div>`;
 
-                    if (!bestModel) throw new Error("No supported text generation models found.");
-                    
-                    console.log(`TIVITY: Selected model: ${bestModel.name}`);
-                    contentDiv.innerHTML = `<div style="padding:20px; font-weight:bold; background:var(--secondary); color:#fff;">Analyzing with ${bestModel.name.split('/').pop()}...</div>`;
-
-                    // Step 2: Run the actual analysis
                     const analysisRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${bestModel.name}:generateContent?key=${apiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{ parts: [{ text: `Analyze these journal entries and identify patterns for personal growth. Be aggressive and insightful:\n${JSON.stringify(compiledData)}` }] }]
+                            contents: [{ parts: [{ text: `Analyze these journal entries and identify patterns for personal growth. Be aggressive and insightful. Use markdown:\n${JSON.stringify(compiledData)}` }] }]
                         })
                     });
 
@@ -1324,14 +1331,38 @@ window.renderSubjects = () => {
 };
 
 async function callEduGemini(prompt, resultContainerId, wordType = null) {
-    let apiKey = localStorage.getItem('geminiApiKey') || "AIzaSyCwFoOYmCl7Vfo2bG4gWm_yngljjdQjOWI";
+    let apiKey = localStorage.getItem('geminiApiKey');
     const container = document.getElementById(resultContainerId);
     
-    container.innerHTML = '<p><em>Consulting the oracle... (Loading)</em></p>';
+    if (!apiKey) {
+        container.innerHTML = '<p style="color:red;"><strong>ERROR:</strong> No Gemini API Key found. Please enter it on the Journal tab.</p>';
+        container.classList.remove('hidden');
+        return;
+    }
+    
+    container.innerHTML = '<p class="pulse"><em>Finding your best AI Oracle...</em></p>';
     container.classList.remove('hidden');
     
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+        // Step 1: Smart discovery
+        const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const modelsData = await modelsRes.json();
+        
+        const supported = modelsData.models.filter(m => m.supportedGenerationMethods.includes('generateContent'));
+        const bestModel = supported.find(m => m.name.includes('flash') && m.name.includes('3')) || 
+                          supported.find(m => m.name.includes('flash') && m.name.includes('2')) || 
+                          supported.find(m => m.name.includes('flash')) || 
+                          supported[0];
+
+        const shortName = bestModel.name.split('/').pop();
+        const badgeId = resultContainerId.replace('-result', '-model-badge').replace('-content', '-model-badge');
+        const badge = document.getElementById(badgeId);
+        if (badge) {
+            badge.textContent = shortName;
+            badge.style.background = 'var(--success)';
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${bestModel.name}:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1628,8 +1659,11 @@ window.addCustomEducationSection = () => {
     const newSection = document.createElement('div');
     newSection.className = 'education-card';
     newSection.innerHTML = `
-        <div class="edu-card-header">
-            <h3>${name}</h3>
+        <div class="edu-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <h3 style="margin:0;">${name}</h3>
+                <span id="${safeName}-model-badge" class="model-indicator" style="background:#000; color:#fff; padding:2px 6px; font-size:0.6rem; border:1px solid #000; font-weight:bold;">AI 3.0</span>
+            </div>
         </div>
         <div class="edu-test-area" style="margin-top:0;">
             <h4>Test Your Knowledge</h4>

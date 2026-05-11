@@ -20,10 +20,6 @@
         <header class="neo-header">
             <h1 style="margin:0;">TIVITY</h1>
             <p style="margin:0;">Track your daily metrics aggressively.</p>
-            <div class="header-btn-row">
-                <button onclick="exportAllData()" style="background:#fff;">⬇️ BACKUP</button>
-                <button onclick="importAllData()" style="background:var(--primary);">⬆️ RESTORE</button>
-            </div>
         </header>
 
         <nav class="neo-nav">
@@ -58,12 +54,10 @@
                     <textarea id="quick-notepad" rows="4" style="width:100%; box-sizing:border-box; border:none; resize:vertical; font-family:inherit; font-size:1.1rem; background:transparent; outline:none;" placeholder="Jot down ideas, scratchpad notes, or brain dumps here..."></textarea>
                 </div>
 
-                <!-- NEW JOURNAL ENTRY TOGGLE -->
-                <div style="margin-bottom: 20px;">
-                    <button id="toggle-journal-form-btn" class="todo-add-btn" style="background:var(--tertiary); font-size:1rem; padding:10px;">+ NEW JOURNAL ENTRY</button>
-                </div>
+                <!-- TOGGLE BUTTON -->
+                <button id="toggle-form-btn" class="submit-btn" style="background:var(--tertiary); color:white; margin-bottom:20px; font-size:1rem; padding:10px;">+ NEW JOURNAL ENTRY</button>
 
-                <div id="journal-form-container" class="hidden">
+                <div id="form-container" class="hidden">
                     <form id="daily-form" class="neo-form">
                     <div class="form-header">
                         <h2>Log Today's Reality</h2>
@@ -227,9 +221,53 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="submit-btn" style="background:#000; color:#fff;">SAVE ENTRY</button>
+                    <button type="submit" class="submit-btn">SAVE ENTRY</button>
                 </form>
-            </div>
+                </div>
+
+                <!-- CONSOLIDATED KEY & DATA -->
+                <div style="margin-top:30px; text-align:center;">
+                    <button id="toggle-key-data-btn" class="submit-btn" style="background:#000; color:#fff; font-size:0.8rem; padding:8px 15px; display:inline-block; width:auto; border:2px solid #000;">⚙️ KEY & DATA</button>
+                </div>
+
+                <div id="key-data-container" class="hidden" style="margin-top:15px;">
+                    <!-- AI API SETUP -->
+                    <div class="notepad-card" style="background:#f4f4f4; border:3px solid #000; margin-bottom:20px;">
+                        <div class="field-group" style="margin-bottom:0;">
+                            <label for="gemini-key" style="background:var(--secondary);">GEMINI API KEY</label>
+                            <input type="password" id="gemini-key" placeholder="Paste your API key here..." required style="width:100%; box-sizing:border-box; margin-top:5px; padding:12px; border:2px solid #000;">
+                            <p style="font-size:0.7rem; margin-top:10px; font-weight:bold;"><em>Required for AI Analysis. Stays local.</em></p>
+                        </div>
+                    </div>
+
+                    <!-- CLOUD SYNC -->
+                    <div class="cloud-sync-card" style="background:#fff; border:3px solid #5500ff; padding:15px;">
+                        <div class="cloud-sync-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <h2 style="margin:0; color:#5500ff; font-size:1.1rem;">CLOUD SYNC</h2>
+                            <span id="cloud-status-badge" style="background:#5500ff; color:#fff; padding:4px 8px; font-weight:bold; font-size:0.6rem;">CONNECTED</span>
+                        </div>
+                        <div style="background:#f0f0ff; padding:10px; border:2px solid #5500ff; margin-bottom:10px;">
+                            <label style="font-size:0.6rem; font-weight:900; color:#5500ff; text-transform:uppercase;">Private Sync ID</label>
+                            <div style="display:flex; gap:5px; margin-top:5px;">
+                                <input type="text" id="sync-id-display" readonly style="flex:1; min-width:0; padding:8px; font-family:monospace; font-size:0.75rem; border:1px solid #5500ff;">
+                                <button class="todo-btn" onclick="copySyncID()" style="background:#5500ff; color:#fff; font-size:0.7rem; padding:0 10px;">COPY</button>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <button class="todo-btn" onclick="promptChangeSyncID()" style="flex:1; background:#fff; border:1px solid #5500ff; font-size:0.7rem;">CHANGE ID</button>
+                            <button class="todo-btn" onclick="location.reload()" style="flex:1; background:#5500ff; color:#fff; font-size:0.7rem;">REFRESH</button>
+                        </div>
+                    </div>
+
+                    <!-- MANUAL BACKUP -->
+                    <div class="notepad-card" style="margin-top:20px; background:#fff; border:3px solid #000;">
+                        <div style="font-size:0.7rem; font-weight:900; letter-spacing:1px; margin-bottom:10px;">MANUAL BACKUP (OFFLINE)</div>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="exportAllData()" style="flex:1; background:#eee; border:2px solid #000; padding:10px; font-size:0.8rem; font-weight:bold;">⬇️ EXPORT</button>
+                            <button onclick="importAllData()" style="flex:1; background:var(--primary); border:2px solid #000; padding:10px; font-size:0.8rem; font-weight:bold;">⬆️ IMPORT</button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- TASKS TAB -->
@@ -274,15 +312,14 @@
                     <button type="submit" class="todo-add-btn">ADD TO MISSION CONTROL</button>
                 </form>
 
-                <div class="todo-controls" style="margin-top: 10px; border-top: 2px solid #000; padding-top: 15px;">
-                    <div id="todo-filters" class="todo-tags" style="margin-bottom: 15px; width: 100%;">
-                        <!-- Filter buttons will be injected here -->
+                <div class="todo-controls">
+                    <div class="todo-filters" id="todo-filters">
+                        <button class="filter-btn active" data-filter="all">ALL</button>
+                        <!-- Dynamic priority filters -->
                     </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <button id="manage-labels-btn" class="todo-btn" style="font-size: 0.65rem; padding: 4px 8px;">MANAGE LABELS</button>
-                        <button id="manage-tags-btn" class="todo-btn" style="font-size: 0.65rem; padding: 4px 8px;">MANAGE TAGS</button>
-                        <button id="toggle-completed-btn" class="todo-btn" style="background:var(--secondary); color:#fff; font-size: 0.65rem; padding: 4px 8px;">COMPLETED</button>
-                    </div>
+                    <button id="manage-labels-btn" class="todo-btn">MANAGE LABELS</button>
+                    <button id="manage-tags-btn" class="todo-btn">MANAGE TAGS</button>
+                    <button id="toggle-completed-btn" class="todo-btn" style="background:var(--secondary); color:#fff;">COMPLETED</button>
                 </div>
 
                 <div id="tag-manager" class="label-manager hidden">
@@ -362,8 +399,11 @@
             <!-- ANALYSIS TAB -->
             <section id="analysis-tab" class="tab-content">
                 <div class="analysis-card">
-                    <h2>AI Pattern Recognition</h2>
-                    <p>Aggregates your entries and uses Gemini to analyze patterns over time.</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h2 style="margin:0;">AI Pattern Recognition</h2>
+                        <span id="active-model-badge" style="background:#000; color:#fff; padding:2px 8px; font-size:0.65rem; font-weight:bold; text-transform:uppercase; border:2px solid #000;">NO MODEL DETECTED</span>
+                    </div>
+                    <p style="margin-top:0;">Aggregates your entries and uses Gemini to analyze patterns over time.</p>
                     
                     <div class="date-range-selector">
                         <div>
@@ -374,11 +414,7 @@
                         </div>
                     </div>
 
-                    <div class="field-group" style="background:#f4f4f4; padding:15px; border:var(--border-width) solid #000; color:#000; margin-bottom:20px;">
-                        <label for="gemini-key" style="background:var(--secondary);">GEMINI API KEY</label>
-                        <input type="password" id="gemini-key" placeholder="Paste your API key here..." required style="width:100%; box-sizing:border-box; margin-top:5px; padding:12px; border:2px solid #000;">
-                        <p style="font-size:0.8rem; margin-top:10px; font-weight:bold;"><em>Get a free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--tertiary);">Google AI Studio</a>. This stays entirely local on your machine.</em></p>
-                    </div>
+
                     
                     <div style="display:flex; justify-content:center; margin-top:20px;">
                         <button id="analyze-btn" class="analyze-btn" style="width:100%; max-width:400px; margin-top:0;">ANALYZE PATTERNS</button>
@@ -392,25 +428,7 @@
 
 
 
-                <!-- CLOUD SYNC -->
-                <div class="cloud-sync-card" style="margin-top:30px;">
-                    <div class="cloud-sync-header">
-                        <h2 style="margin:0; color:#5500ff;">CLOUD SYNC (FIREBASE)</h2>
-                        <span id="cloud-status-badge" style="background:#5500ff; color:#fff; padding:4px 10px; font-weight:bold; font-size:0.7rem;">CONNECTED</span>
-                    </div>
-                    <p style="margin:0 0 15px 0; font-size:0.9rem;">Your data is automatically mirrored to the Google Cloud. Use this ID to sync your phone.</p>
-                    <div style="background:#fff; padding:15px; border:2px solid #000; margin-bottom:15px;">
-                        <label style="font-size:0.7rem; font-weight:900; color:#888; text-transform:uppercase; letter-spacing:1px;">Private Sync ID</label>
-                        <div class="sync-id-row">
-                            <input type="text" id="sync-id-display" readonly style="flex:1; min-width:0; padding:10px; font-family:monospace; font-weight:bold; border:2px solid #000; background:#eee; font-size:0.85rem;">
-                            <button class="todo-btn" onclick="copySyncID()" style="background:#5500ff; color:#fff; border:2px solid #000; white-space:nowrap;">COPY</button>
-                        </div>
-                    </div>
-                    <div class="sync-btn-row">
-                        <button class="todo-btn" onclick="promptChangeSyncID()" style="flex:1; background:#fff; border-color:#5500ff;">CHANGE ID</button>
-                        <button class="todo-btn" onclick="location.reload()" style="flex:1; background:#5500ff; color:#fff;">FORCE REFRESH</button>
-                    </div>
-                </div>
+
 
                 </div>
             </section>
@@ -425,8 +443,11 @@
                 <div id="education-sections-container">
                     <!-- Vocabulary Section -->
                     <div class="education-card" id="edu-section-vocab">
-                        <div class="edu-card-header">
-                            <h3>Vocabulary</h3>
+                        <div class="edu-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <h3 style="margin:0;">Vocabulary</h3>
+                                <span id="vocab-model-badge" class="model-indicator" style="background:#000; color:#fff; padding:2px 6px; font-size:0.6rem; border:1px solid #000; font-weight:bold;">AI 3.0</span>
+                            </div>
                             <button id="edu-new-vocab-btn" class="todo-btn" style="background:var(--secondary); color:#fff;" onclick="getNewEduItem('vocab')">NEW WORD</button>
                         </div>
                         <div id="vocab-content" class="edu-content-area hidden"></div>
@@ -442,8 +463,11 @@
 
                     <!-- Language Section -->
                     <div class="education-card" id="edu-section-spanish">
-                        <div class="edu-card-header">
-                            <h3>Language (Spanish)</h3>
+                        <div class="edu-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <h3 style="margin:0;">Spanish</h3>
+                                <span id="spanish-model-badge" class="model-indicator" style="background:#000; color:#fff; padding:2px 6px; font-size:0.6rem; border:1px solid #000; font-weight:bold;">AI 3.0</span>
+                            </div>
                             <button id="edu-new-spanish-btn" class="todo-btn" style="background:var(--tertiary); color:#fff;" onclick="getNewEduItem('spanish')">NEW WORD</button>
                         </div>
                         <div id="spanish-content" class="edu-content-area hidden"></div>
@@ -517,9 +541,10 @@
         // Make Firebase available to the rest of the app
         window.firebaseDB = db;
         window.firestore = { collection, addDoc, getDocs, query, where, doc, setDoc, deleteDoc, onSnapshot };
+        
         console.log("TIVITY: Firebase Cloud Brain Initialized.");
     </script>
 
-    <script src="target_engine.js?v=29"></script>
+    <script src="target_engine.js?v=37"></script>
 </body>
 </html>
