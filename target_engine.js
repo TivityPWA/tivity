@@ -157,17 +157,30 @@ function renderPriorityUI() {
     const filterContainer = document.getElementById('todo-filters');
     if (filterContainer) {
         const activeFilter = filterContainer.querySelector('.filter-btn.active')?.getAttribute('data-filter') || 'all';
-        filterContainer.innerHTML = `<button class="filter-btn ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">ALL</button>` +
+        filterContainer.innerHTML = 
+            `<button class="filter-btn ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">ALL</button>` +
+            `<button id="toggle-todo-tools-btn" class="filter-btn" style="background:#000; color:#fff; border-color:#000;">EDIT</button>` +
             priorities.map(p => `<button class="filter-btn ${activeFilter === p.id ? 'active' : ''}" data-filter="${p.id}" style="border-color:${p.color}">${p.name}</button>`).join('');
         
-        // Re-attach filter listeners
-        filterContainer.querySelectorAll('.filter-btn').forEach(btn => {
+        // Re-attach filter listeners (excluding the EDIT button)
+        filterContainer.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
             btn.addEventListener('click', () => {
                 filterContainer.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 renderTasks(btn.getAttribute('data-filter'));
             });
         });
+
+        // Re-attach Toggle Logic for EDIT button
+        const toggleBtn = document.getElementById('toggle-todo-tools-btn');
+        const toolsContainer = document.getElementById('todo-tools-container');
+        if (toggleBtn && toolsContainer) {
+            toggleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toolsContainer.classList.toggle('hidden');
+                toggleBtn.textContent = toolsContainer.classList.contains('hidden') ? 'EDIT' : 'CLOSE';
+            });
+        }
     }
 
     // Update Label Manager
@@ -848,23 +861,42 @@ function initApp() {
     const navBtns = document.querySelectorAll('.nav-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    // 1. Journal Form Toggle
     const toggleFormBtn = document.getElementById('toggle-form-btn');
     const formContainer = document.getElementById('form-container');
     if (toggleFormBtn && formContainer) {
-        toggleFormBtn.addEventListener('click', () => {
+        toggleFormBtn.onclick = (e) => {
+            e.preventDefault();
             formContainer.classList.toggle('hidden');
             toggleFormBtn.textContent = formContainer.classList.contains('hidden') ? '+ NEW JOURNAL ENTRY' : '- CLOSE FORM';
-        });
+            console.log("TIVITY: Journal Form Toggled", !formContainer.classList.contains('hidden'));
+        };
     }
 
+    // 2. Key & Data Toggle
     const toggleKeyDataBtn = document.getElementById('toggle-key-data-btn');
     const keyDataContainer = document.getElementById('key-data-container');
     if (toggleKeyDataBtn && keyDataContainer) {
-        toggleKeyDataBtn.addEventListener('click', () => {
+        toggleKeyDataBtn.onclick = (e) => {
+            e.preventDefault();
             keyDataContainer.classList.toggle('hidden');
             toggleKeyDataBtn.textContent = keyDataContainer.classList.contains('hidden') ? '⚙️ KEY & DATA' : '✖️ CLOSE SETTINGS';
-        });
+            console.log("TIVITY: Key & Data Toggled", !keyDataContainer.classList.contains('hidden'));
+        };
     }
+
+    // 3. New Task Form Toggle
+    const toggleTodoFormBtn = document.getElementById('toggle-todo-form-btn');
+    const todoFormContainer = document.getElementById('todo-form-container');
+    if (toggleTodoFormBtn && todoFormContainer) {
+        toggleTodoFormBtn.onclick = (e) => {
+            e.preventDefault();
+            todoFormContainer.classList.toggle('hidden');
+            toggleTodoFormBtn.textContent = todoFormContainer.classList.contains('hidden') ? '+ NEW TASK' : '- CLOSE FORM';
+            console.log("TIVITY: Task Form Toggled", !todoFormContainer.classList.contains('hidden'));
+        };
+    }
+
 
     navBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -942,6 +974,14 @@ function initApp() {
             saveTasks(tasks);
             todoForm.reset();
             renderTasks();
+
+            // Auto-collapse form
+            const todoFormContainer = document.getElementById('todo-form-container');
+            const toggleTodoFormBtn = document.getElementById('toggle-todo-form-btn');
+            if (todoFormContainer && toggleTodoFormBtn) {
+                todoFormContainer.classList.add('hidden');
+                toggleTodoFormBtn.textContent = '+ NEW TASK';
+            }
         });
     }
 
@@ -1668,8 +1708,8 @@ window.addCustomEducationSection = () => {
         <div class="edu-test-area" style="margin-top:0;">
             <h4>Test Your Knowledge</h4>
             <div style="display:flex; gap:10px;">
-                <input type="text" id="${safeName}-test-input" placeholder="e.g. 'Quiz me'">
-                <button class="todo-btn" onclick="runEduTest('${safeName}')">TEST ME</button>
+                <input type="text" id="${safeName}-test-input" placeholder="e.g. 'Quiz me'" style="flex:1;">
+                <button class="todo-btn" style="flex:none; width:auto; white-space:nowrap;" onclick="runEduTest('${safeName}')">TEST ME</button>
             </div>
             <div id="${safeName}-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
         </div>
@@ -1762,6 +1802,7 @@ function renderCalendar() {
         `;
     }
     grid.innerHTML = html;
+    console.log("TIVITY: Calendar rendered with " + (daysInMonth + 7) + " cells.");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1786,12 +1827,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggleBtn = document.getElementById('toggle-calendar-btn');
     const calView = document.getElementById('calendar-view');
     if (toggleBtn && calView) {
-        toggleBtn.addEventListener('click', () => {
-                    const isHidden = calView.style.display === 'none';
+        toggleBtn.onclick = (e) => {
+            e.preventDefault();
+            const isHidden = calView.style.display === 'none';
             calView.style.display = isHidden ? 'block' : 'none';
-            toggleBtn.textContent = isHidden ? 'CLOSE AERIAL VIEW' : 'OPEN AERIAL VIEW';
+            toggleBtn.textContent = isHidden ? 'CLOSE CALENDAR' : 'OPEN CALENDAR';
             if (isHidden) renderCalendar();
-        });
+            console.log("TIVITY: Calendar Toggle", isHidden);
+        };
     }
 
     renderTagUI();
