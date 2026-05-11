@@ -164,22 +164,23 @@ function renderPriorityUI() {
         
         // Re-attach filter listeners (excluding the EDIT button)
         filterContainer.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.onclick = () => {
                 filterContainer.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 renderTasks(btn.getAttribute('data-filter'));
-            });
+                console.log("TIVITY: Filter Changed ->", btn.getAttribute('data-filter'));
+            };
         });
 
         // Re-attach Toggle Logic for EDIT button
         const toggleBtn = document.getElementById('toggle-todo-tools-btn');
         const toolsContainer = document.getElementById('todo-tools-container');
         if (toggleBtn && toolsContainer) {
-            toggleBtn.addEventListener('click', (e) => {
+            toggleBtn.onclick = (e) => {
                 e.preventDefault();
                 toolsContainer.classList.toggle('hidden');
                 toggleBtn.textContent = toolsContainer.classList.contains('hidden') ? 'EDIT' : 'CLOSE';
-            });
+            };
         }
     }
 
