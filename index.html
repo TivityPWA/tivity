@@ -20,9 +20,7 @@
         <header class="neo-header">
             <h1 style="margin:0;">TIVITY</h1>
 
-            <div style="margin-top:10px;">
-                <button id="toggle-key-data-btn" style="background:#000; color:#fff; font-size:0.65rem; padding:4px 10px; font-weight:bold; border:2px solid #000; cursor:pointer; text-transform:uppercase;">⚙️ KEY & DATA</button>
-            </div>
+            <button id="toggle-key-data-btn" style="position:absolute; top:8px; left:8px; background:none; border:none; cursor:pointer; font-size:1.2rem; padding:5px;">☰</button>
         </header>
 
         <!-- GLOBAL KEY & DATA PANEL -->
@@ -272,10 +270,7 @@
             <section id="todo-tab" class="tab-content">
 
 
-                <!-- TOGGLE TASK FORM -->
-                <div style="text-align:center; margin-bottom:40px;">
-                    <button id="toggle-todo-form-btn" class="submit-btn" style="background:var(--success); color:#000; width:auto; padding:10px 25px; font-size:0.9rem;">+ NEW TASK</button>
-                </div>
+
 
                 <div id="todo-form-container" class="hidden">
                     <form id="todo-form" class="todo-entry-form">
@@ -309,11 +304,14 @@
                                 <textarea id="todo-desc" rows="2" placeholder="Full task details..."></textarea>
                             </div>
                         </div>
-                        <button type="submit" class="todo-add-btn" style="margin-bottom:25px;">ADD TASK</button>
+                        <div style="display:flex; gap:10px; margin-bottom:25px;">
+                            <button type="submit" class="todo-add-btn" style="flex:1; margin:0;">ADD TASK</button>
+                            <button type="button" class="todo-add-btn" style="flex:1; margin:0; background:#eee; color:#000;" onclick="window.toggleTaskForm()">CLOSE</button>
+                        </div>
                     </form>
                 </div>
 
-                <div class="todo-filters-container">
+                <div class="todo-filters-container" style="margin-top: 50px;">
                     <div class="todo-filters" id="todo-filters" style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:15px;">
                         <button class="filter-btn active" data-filter="all">ALL</button>
                         <!-- Dynamic priority filters -->
@@ -359,7 +357,7 @@
                 
                 <!-- CALENDAR TOGGLE -->
                 <div style="margin-top: 50px; text-align: center; border-top: 4px solid #000; padding-top: 40px;">
-                    <button id="toggle-calendar-btn" class="submit-btn" style="width: auto; padding: 15px 30px;">OPEN CALENDAR</button>
+                    <button id="toggle-calendar-btn" class="submit-btn" style="width: auto; padding: 10px 25px; font-size: 0.9rem;">CALENDAR</button>
                 </div>
 
                 <!-- AERIAL VIEW CALENDAR -->
@@ -447,73 +445,7 @@
                 </div>
                 
                 <div id="education-sections-container">
-                    <!-- Vocabulary Section -->
-                    <div class="education-card" id="edu-section-vocab">
-                        <div class="edu-card-header" style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <h3 style="margin:0;">Vocabulary</h3>
-                                <span id="vocab-model-badge" class="model-indicator" style="background:#000; color:#fff; padding:2px 6px; font-size:0.6rem; border:1px solid #000; font-weight:bold;">AI 3.0</span>
-                            </div>
-                            <button id="edu-new-vocab-btn" class="todo-btn" style="background:var(--secondary); color:#fff; flex:none; width:auto; white-space:nowrap;" onclick="getNewEduItem('vocab')">NEW WORD</button>
-                        </div>
-                        <div id="vocab-content" class="edu-content-area hidden"></div>
-                        <div class="edu-test-area">
-                            <h4>Test Your Knowledge</h4>
-                            <div style="display:flex; gap:10px;">
-                                <input type="text" id="vocab-test-input" placeholder="e.g. 'Test me on recent words'" style="flex:1;">
-                                <button class="todo-btn" style="flex:none; width:auto; white-space:nowrap;" onclick="runEduTest('vocab')">TEST ME</button>
-                            </div>
-                            <div id="vocab-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Language Section -->
-                    <div class="education-card" id="edu-section-spanish">
-                        <div class="edu-card-header" style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <h3 style="margin:0;">Spanish</h3>
-                                <span id="spanish-model-badge" class="model-indicator" style="background:#000; color:#fff; padding:2px 6px; font-size:0.6rem; border:1px solid #000; font-weight:bold;">AI 3.0</span>
-                            </div>
-                            <button id="edu-new-spanish-btn" class="todo-btn" style="background:var(--tertiary); color:#fff; flex:none; width:auto; white-space:nowrap;" onclick="getNewEduItem('spanish')">NEW WORD</button>
-                        </div>
-                        <div id="spanish-content" class="edu-content-area hidden"></div>
-                        <div class="edu-test-area">
-                            <h4>Test Your Knowledge</h4>
-                            <div style="display:flex; gap:10px;">
-                                <input type="text" id="spanish-test-input" placeholder="e.g. 'Test my conversational Spanish'" style="flex:1;">
-                                <button class="todo-btn" style="flex:none; width:auto; white-space:nowrap;" onclick="runEduTest('spanish')">TEST ME</button>
-                            </div>
-                            <div id="spanish-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Subjects to Study Section -->
-                    <div class="education-card" id="edu-section-subject">
-                        <div class="edu-card-header">
-                            <h3>Subjects to Study</h3>
-                        </div>
-                        <form id="subject-form" class="todo-entry-form" style="padding:15px; margin-bottom: 15px;">
-                            <div class="field-group" style="margin-bottom:10px;">
-                                <input type="text" id="subject-title" placeholder="Subject or Book Title" required>
-                            </div>
-                            <div class="field-group" style="margin-bottom:10px;">
-                                <input type="date" id="subject-date">
-                            </div>
-                            <button type="submit" class="todo-btn" style="background:var(--success); width:100%;">ADD SUBJECT</button>
-                        </form>
-                        <div id="subjects-list" class="todo-list">
-                            <!-- Subjects injected here -->
-                        </div>
-                        
-                        <div class="edu-test-area" style="margin-top:20px;">
-                            <h4>Test Your Knowledge</h4>
-                            <div style="display:flex; gap:10px;">
-                                <input type="text" id="subject-test-input" placeholder="e.g. 'Quiz me on my subjects'">
-                                <button class="todo-btn" onclick="runEduTest('subject')">TEST ME</button>
-                            </div>
-                            <div id="subject-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
-                        </div>
-                    </div>
+                    <!-- Sections injected dynamically by target_engine.js -->
                 </div>
 
                 <!-- General Add Button -->
@@ -551,6 +483,6 @@
         console.log("TIVITY: Firebase Cloud Brain Initialized.");
     </script>
 
-    <script src="target_engine.js?v=54"></script>
+    <script src="target_engine.js?v=68"></script>
 </body>
 </html>

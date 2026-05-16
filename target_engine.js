@@ -157,29 +157,52 @@ function renderPriorityUI() {
     const filterContainer = document.getElementById('todo-filters');
     if (filterContainer) {
         const activeFilter = filterContainer.querySelector('.filter-btn.active')?.getAttribute('data-filter') || 'all';
-        filterContainer.innerHTML = 
-            `<button class="filter-btn ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">ALL</button>` +
-            `<button id="toggle-todo-tools-btn" class="filter-btn" style="background:#000; color:#fff; border-color:#000;">EDIT</button>` +
-            priorities.map(p => `<button class="filter-btn ${activeFilter === p.id ? 'active' : ''}" data-filter="${p.id}" style="border-color:${p.color}">${p.name}</button>`).join('');
         
-        // Re-attach filter listeners (excluding the EDIT button)
-        filterContainer.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+        // Build the HTML for the MENU button and the collapsed list
+        filterContainer.innerHTML = `
+            <div style="width:100%; text-align:left; margin-bottom:10px;">
+                <button id="toggle-menu-btn" class="submit-btn" style="width:auto; padding:4px 10px; font-size:0.65rem; background:#000; color:#fff;">MENU</button>
+            </div>
+            <div id="todo-filter-list" class="hidden" style="display:flex; flex-wrap:wrap; gap:8px; padding:12px; border:2px solid #000; background:#f8f8f8; margin-bottom:15px; box-shadow: 4px 4px 0 #000;">
+                <button class="filter-btn ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">ALL</button>
+                <button id="toggle-todo-tools-btn" class="filter-btn" style="background:#000; color:#fff; border-color:#000;">EDIT TOOLS</button>
+                ${priorities.map(p => `<button class="filter-btn ${activeFilter === p.id ? 'active' : ''}" data-filter="${p.id}" style="border-color:${p.color}">${p.name}</button>`).join('')}
+            </div>
+        `;
+        
+        // 1. Menu Toggle Logic
+        const menuBtn = document.getElementById('toggle-menu-btn');
+        const filterList = document.getElementById('todo-filter-list');
+        if (menuBtn && filterList) {
+            menuBtn.onclick = (e) => {
+                e.preventDefault();
+                filterList.classList.toggle('hidden');
+                menuBtn.textContent = filterList.classList.contains('hidden') ? 'MENU' : 'CLOSE MENU';
+            };
+        }
+
+        // 2. Filter Button Logic
+        filterList.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
             btn.onclick = () => {
-                filterContainer.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                filterList.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 renderTasks(btn.getAttribute('data-filter'));
+                
+                // Auto-close menu on selection
+                filterList.classList.add('hidden');
+                menuBtn.textContent = 'MENU';
                 console.log("TIVITY: Filter Changed ->", btn.getAttribute('data-filter'));
             };
         });
 
-        // Re-attach Toggle Logic for EDIT button
+        // 3. Edit Toggle Logic
         const toggleBtn = document.getElementById('toggle-todo-tools-btn');
         const toolsContainer = document.getElementById('todo-tools-container');
         if (toggleBtn && toolsContainer) {
             toggleBtn.onclick = (e) => {
                 e.preventDefault();
                 toolsContainer.classList.toggle('hidden');
-                toggleBtn.textContent = toolsContainer.classList.contains('hidden') ? 'EDIT' : 'CLOSE';
+                toggleBtn.textContent = toolsContainer.classList.contains('hidden') ? 'EDIT TOOLS' : 'CLOSE TOOLS';
             };
         }
     }
@@ -270,7 +293,12 @@ function renderTasks(filter = 'all', containerId = 'todo-list', showDone = false
     filteredTasks.sort((a,b) => (a.order || 0) - (b.order || 0));
 
     if (filteredTasks.length === 0) {
-        list.innerHTML = `<div class="todo-item" style="border-style: dashed;"><p>No ${showDone ? 'completed' : 'active'} tasks found. ${showDone ? 'Get to work!' : 'Keep crushing it!'}</p></div>`;
+        list.innerHTML = `
+            <div class="todo-item" style="border-style: dashed; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+                <p style="margin-bottom: 10px;">No ${showDone ? 'completed' : 'active'} tasks found. ${showDone ? 'Get to work!' : 'Keep crushing it!'}</p>
+                ${!showDone ? `<button onclick="window.toggleTaskForm()" style="background:var(--success); color:#000; border:2px solid #000; border-radius:50%; width:40px; height:40px; font-size:1.5rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:2px 2px 0 #000; margin-top:10px;">+</button>` : ''}
+            </div>
+        `;
         return;
     }
 
@@ -319,7 +347,26 @@ function renderTasks(filter = 'all', containerId = 'todo-list', showDone = false
 
         list.appendChild(item);
     });
+
+    // Add contextual '+' button at the end if not showing completed
+    if (!showDone) {
+        const addBtnContainer = document.createElement('div');
+        addBtnContainer.style.textAlign = 'center';
+        addBtnContainer.style.marginTop = '25px';
+        addBtnContainer.innerHTML = `<button onclick="window.toggleTaskForm()" style="background:var(--success); color:#000; border:2px solid #000; border-radius:50%; width:40px; height:40px; font-size:1.5rem; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow:2px 2px 0 #000;">+</button>`;
+        list.appendChild(addBtnContainer);
+    }
 }
+
+window.toggleTaskForm = () => {
+    const todoFormContainer = document.getElementById('todo-form-container');
+    if (todoFormContainer) {
+        todoFormContainer.classList.toggle('hidden');
+        if (!todoFormContainer.classList.contains('hidden')) {
+            document.getElementById('todo-input')?.focus();
+        }
+    }
+};
 
 window.startEditing = (id, element) => {
     const tasks = getTasks();
@@ -881,22 +928,12 @@ function initApp() {
         toggleKeyDataBtn.onclick = (e) => {
             e.preventDefault();
             keyDataContainer.classList.toggle('hidden');
-            toggleKeyDataBtn.textContent = keyDataContainer.classList.contains('hidden') ? '⚙️ KEY & DATA' : '✖️ CLOSE SETTINGS';
             console.log("TIVITY: Key & Data Toggled", !keyDataContainer.classList.contains('hidden'));
         };
     }
 
-    // 3. New Task Form Toggle
-    const toggleTodoFormBtn = document.getElementById('toggle-todo-form-btn');
+    // 3. New Task Form Toggle (now handled globally, just keeping reference cleanup)
     const todoFormContainer = document.getElementById('todo-form-container');
-    if (toggleTodoFormBtn && todoFormContainer) {
-        toggleTodoFormBtn.onclick = (e) => {
-            e.preventDefault();
-            todoFormContainer.classList.toggle('hidden');
-            toggleTodoFormBtn.textContent = todoFormContainer.classList.contains('hidden') ? '+ NEW TASK' : '- CLOSE FORM';
-            console.log("TIVITY: Task Form Toggled", !todoFormContainer.classList.contains('hidden'));
-        };
-    }
 
 
     navBtns.forEach(btn => {
@@ -978,10 +1015,8 @@ function initApp() {
 
             // Auto-collapse form
             const todoFormContainer = document.getElementById('todo-form-container');
-            const toggleTodoFormBtn = document.getElementById('toggle-todo-form-btn');
-            if (todoFormContainer && toggleTodoFormBtn) {
+            if (todoFormContainer) {
                 todoFormContainer.classList.add('hidden');
-                toggleTodoFormBtn.textContent = '+ NEW TASK';
             }
         });
     }
@@ -1443,6 +1478,31 @@ async function callEduGemini(prompt, resultContainerId, wordType = null) {
                 container.innerHTML = `<div style="padding:15px;">${window.parseMarkdown(text)}</div>`;
             }
         } else {
+            // Check if it's structured JSON for a custom category
+            try {
+                const jsonMatch = text.match(/\{[\s\S]*\}/);
+                if (jsonMatch && !isTest) { // Only try to render structured if not a test result
+                    const obj = JSON.parse(jsonMatch[0]);
+                    if (obj.title && obj.content) {
+                        container.innerHTML = `
+                            <div style="padding:20px; border:4px solid #000; background:#fff; box-shadow:6px 6px 0 #000; font-family:inherit;">
+                                <h3 style="margin-top:0; border-bottom:4px solid #000; padding-bottom:12px; font-size:1.4rem; letter-spacing:1px; text-transform:uppercase;">${obj.title}</h3>
+                                <div style="line-height:1.6; font-size:1.05rem; margin-bottom:20px;">${obj.content.replace(/\n/g, '<br>')}</div>
+                                ${obj.example ? `
+                                    <div style="background:#f9f9f9; padding:15px; border:3px solid #000; margin-bottom:15px;">
+                                        <div style="font-size:0.75rem; font-weight:900; letter-spacing:2px; color:#888; text-transform:uppercase; margin-bottom:8px;">Example</div>
+                                        <p style="margin:0; font-style:italic;">"${obj.example}"</p>
+                                    </div>` : ''}
+                                ${obj.key_takeaway ? `
+                                    <div style="background:var(--success); color:#000; padding:12px 15px; border:3px solid #000; font-weight:700;">
+                                        💡 KEY TAKEAWAY: ${obj.key_takeaway}
+                                    </div>` : ''}
+                            </div>
+                        `;
+                        return;
+                    }
+                }
+            } catch (e) { /* Fallback to markdown */ }
             container.innerHTML = window.parseMarkdown(text);
         }
     } catch (err) {
@@ -1527,6 +1587,22 @@ Return ONLY valid JSON — no explanation, no markdown, no extra text — in thi
 }
 If the word is not a verb, return an empty array for conjugations. Keep everything simple, friendly, and practical — this person is just starting out.`;
         containerId = "spanish-content";
+    } else {
+        // Custom Category
+        const cats = getEduCategories();
+        const cat = cats.find(c => c.id === type);
+        const catName = cat ? cat.name : type;
+        prompt = `You are an expert tutor for the subject: "${catName}". 
+        Provide a concise, high-impact educational insight, concept, or piece of knowledge related to ${catName}.
+        Return ONLY valid JSON in this exact format:
+        {
+          "title": "Short title of the concept",
+          "content": "A clear, engaging explanation of the concept (can include bullet points using \\n)",
+          "example": "A practical example or use case",
+          "key_takeaway": "The one thing to remember"
+        }
+        Do not include markdown blocks or any other text.`;
+        containerId = `${type}-content`;
     }
     
     if (prompt) {
@@ -1678,46 +1754,164 @@ window.runEduTest = (type) => {
     const input = document.getElementById(`${type}-test-input`).value;
     if (!input) return alert("Please enter a test query first.");
     
+    let recentWordsText = "";
+    if (type === 'vocab') {
+        const seenVocab = JSON.parse(localStorage.getItem('seenVocabWords') || '[]');
+        if (seenVocab.length > 0) {
+            recentWordsText = `Here is my entire list of learned words in chronological order (oldest to newest): ${seenVocab.join(', ')}. `;
+        }
+    } else if (type === 'spanish') {
+        const seenSpanish = JSON.parse(localStorage.getItem('seenSpanishWords') || '[]');
+        if (seenSpanish.length > 0) {
+            recentWordsText = `Here is my entire list of learned Spanish words in chronological order (oldest to newest): ${seenSpanish.join(', ')}. `;
+        }
+    }
+    
     const contextMap = {
         'vocab': "I am studying advanced GRE vocabulary. ",
-        'spanish': "I am learning conversational Spanish. ",
-        'subject': "I am studying various subjects and books. "
+        'spanish': "I am learning Spanish for beginners. ",
+        'subject': "I am studying specific subjects and books. "
     };
     
-    const prefix = contextMap[type] || `I am studying ${type}. `;
-    const prompt = `${prefix} Here is my test request/answer: "${input}". Please provide a short quiz, evaluate my answer, or respond appropriately.`;
+    // Default context for custom types
+    let context = contextMap[type];
+    if (!context) {
+        const cats = getEduCategories();
+        const cat = cats.find(c => c.id === type);
+        context = `I am studying the subject: "${cat ? cat.name : type}". `;
+    }
+
+    const fullPrompt = `${context}${recentWordsText}Please test my knowledge based on this query: "${input}". Provide a short quiz or question.`;
     
-    callEduGemini(prompt, `${type}-test-result`);
+    const resultId = `${type}-test-result`;
+    const resultDiv = document.getElementById(resultId);
+    if (resultDiv) {
+        resultDiv.classList.remove('hidden');
+        resultDiv.innerHTML = "Generating test...";
+    }
+    
+    callEduGemini(fullPrompt, resultId, type, true);
+};
+
+// --- Education Categories Persistence ---
+window.getEduCategories = () => {
+    const defaults = [
+        { id: 'vocab', name: 'Vocabulary', type: 'vocab' },
+        { id: 'spanish', name: 'Spanish', type: 'spanish' },
+        { id: 'subject', name: 'Subjects to Study', type: 'subject' }
+    ];
+    const saved = JSON.parse(localStorage.getItem('eduCategories') || '[]');
+    // If first time, return defaults
+    if (localStorage.getItem('eduCategories') === null) {
+        localStorage.setItem('eduCategories', JSON.stringify(defaults));
+        return defaults;
+    }
+    return saved;
+};
+
+window.saveEduCategories = (cats) => {
+    localStorage.setItem('eduCategories', JSON.stringify(cats));
+};
+
+window.deleteEduSection = (id) => {
+    if (!confirm("Are you sure you want to delete this education category?")) return;
+    const cats = getEduCategories().filter(c => c.id !== id);
+    saveEduCategories(cats);
+    location.reload(); // Refresh to update UI based on persisted state
 };
 
 window.addCustomEducationSection = () => {
     const name = prompt("Enter the name of the new education category:");
     if (!name) return;
     
-    const container = document.getElementById('education-sections-container');
     const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const cats = getEduCategories();
     
-    const newSection = document.createElement('div');
-    newSection.className = 'education-card';
-    newSection.innerHTML = `
-        <div class="edu-card-header" style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <h3 style="margin:0;">${name}</h3>
-                <span id="${safeName}-model-badge" class="model-indicator" style="background:#000; color:#fff; padding:2px 6px; font-size:0.6rem; border:1px solid #000; font-weight:bold;">AI 3.0</span>
-            </div>
-        </div>
-        <div class="edu-test-area" style="margin-top:0;">
-            <h4>Test Your Knowledge</h4>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="${safeName}-test-input" placeholder="e.g. 'Quiz me'" style="flex:1;">
-                <button class="todo-btn" style="flex:none; width:auto; white-space:nowrap;" onclick="runEduTest('${safeName}')">TEST ME</button>
-            </div>
-            <div id="${safeName}-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
-        </div>
-    `;
+    if (cats.find(c => c.id === safeName)) return alert("Category already exists.");
     
-    container.appendChild(newSection);
+    cats.push({ id: safeName, name: name, type: 'custom' });
+    saveEduCategories(cats);
+    location.reload();
 };
+
+// Initial Load of Education Sections
+document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById('education-sections-container');
+    if (!container) return;
+    
+    const cats = getEduCategories();
+    // Clear hardcoded ones from container if any (though we'll clean up index.html next)
+    container.innerHTML = '';
+    
+    cats.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'education-card';
+        card.id = `edu-section-${cat.id}`;
+        
+        let innerHTML = `
+            <div class="edu-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <h3 style="margin:0;">${cat.name}</h3>
+                    ${cat.type !== 'subject' ? `<span id="${cat.id}-model-badge" class="model-indicator" style="background:#000; color:#fff; padding:2px 6px; font-size:0.6rem; border:1px solid #000; font-weight:bold;">AI 3.0</span>` : ''}
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    ${cat.type === 'vocab' ? `<button class="todo-btn" style="background:var(--secondary); color:#fff;" onclick="getNewEduItem('vocab')">NEW WORD</button>` : ''}
+                    ${cat.type === 'spanish' ? `<button class="todo-btn" style="background:var(--tertiary); color:#fff;" onclick="getNewEduItem('spanish')">NEW WORD</button>` : ''}
+                    ${cat.type === 'custom' ? `<button class="todo-btn" style="background:var(--primary); color:#fff;" onclick="getNewEduItem('${cat.id}')">GENERATE</button>` : ''}
+                    <button class="todo-btn" onclick="deleteEduSection('${cat.id}')" style="background:#ff4444; color:#fff; padding: 2px 8px; border:2px solid #000; box-shadow:2px 2px 0 #000; font-weight:bold;">X</button>
+                </div>
+            </div>
+        `;
+
+        if (cat.type === 'subject') {
+            innerHTML += `
+                <form id="subject-form" class="todo-entry-form" style="padding:15px; margin-bottom: 15px;">
+                    <div class="field-group" style="margin-bottom:10px;">
+                        <input type="text" id="subject-title" placeholder="Subject or Book Title" required>
+                    </div>
+                    <div class="field-group" style="margin-bottom:10px;">
+                        <input type="date" id="subject-date">
+                    </div>
+                    <button type="submit" class="todo-btn" style="background:var(--success); width:100%;">ADD SUBJECT</button>
+                </form>
+                <div id="subjects-list" class="todo-list"></div>
+            `;
+        } else {
+            innerHTML += `<div id="${cat.id}-content" class="edu-content-area hidden"></div>`;
+        }
+
+        innerHTML += `
+            <div class="edu-test-area" style="margin-top:${cat.type === 'subject' ? '20px' : '0'};">
+                <h4>Test Your Knowledge</h4>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="${cat.id}-test-input" placeholder="e.g. 'Quiz me'" style="flex:1;">
+                    <button class="todo-btn" style="flex:none; width:auto; white-space:nowrap;" onclick="runEduTest('${cat.id}')">TEST ME</button>
+                </div>
+                <div id="${cat.id}-test-result" class="edu-content-area hidden" style="margin-top: 15px;"></div>
+            </div>
+        `;
+        
+        card.innerHTML = innerHTML;
+        container.appendChild(card);
+    });
+
+    // Re-bind subject form if it exists
+    const subForm = document.getElementById('subject-form');
+    if (subForm) {
+        subForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('subject-title').value;
+            const date = document.getElementById('subject-date').value;
+            const subjects = getSubjects();
+            subjects.push({ id: Date.now().toString(), title, date, done: false });
+            saveSubjects(subjects);
+            document.getElementById('subject-title').value = '';
+            document.getElementById('subject-date').value = '';
+            renderSubjects();
+        });
+        renderSubjects();
+    }
+});
 
 // --- Quick Notepad Logic ---
 document.addEventListener("DOMContentLoaded", () => {
