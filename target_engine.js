@@ -44,6 +44,17 @@ async function initialCloudPull() {
         entrySnap.forEach(doc => { cloudEntries[doc.id] = doc.data(); });
         localStorage.setItem('journalEntries', JSON.stringify(cloudEntries));
     }
+    // Pull Settings (Priorities, Tags, Education)
+    const settingsSnap = await getDocs(collection(window.firebaseDB, "users", SYNC_ID, "settings"));
+    settingsSnap.forEach(doc => {
+        if (doc.id === 'priorities') {
+            localStorage.setItem('journalPriorities', JSON.stringify(doc.data().priorities));
+        } else if (doc.id === 'tags') {
+            localStorage.setItem('journalDefaultTags', JSON.stringify(doc.data().defaultTags));
+        } else if (doc.id === 'education') {
+            localStorage.setItem('eduCategories', JSON.stringify(doc.data().cats));
+        }
+    });
     
     console.log("TIVITY: Initial Cloud Sync Complete.");
 }
@@ -1424,6 +1435,8 @@ async function callEduGemini(prompt, resultContainerId, wordType = null) {
         const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
         const modelsData = await modelsRes.json();
         
+        if (!modelsData.models) throw new Error(modelsData.error?.message || "Could not list models. Check your API key.");
+        
         const supported = modelsData.models.filter(m => m.supportedGenerationMethods.includes('generateContent'));
         const bestModel = supported.find(m => m.name.includes('flash') && m.name.includes('3')) || 
                           supported.find(m => m.name.includes('flash') && m.name.includes('2')) || 
@@ -1811,6 +1824,8 @@ window.getEduCategories = () => {
 
 window.saveEduCategories = (cats) => {
     localStorage.setItem('eduCategories', JSON.stringify(cats));
+    // Push to cloud
+    syncToCloud("settings", "education", { cats });
 };
 
 window.deleteEduSection = (id) => {

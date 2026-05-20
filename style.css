@@ -49,6 +49,7 @@ body {
   padding: 15px 10px;
   margin-bottom: 20px;
   text-align: center;
+  position: relative;
 }
 
 .neo-header h1 {
@@ -550,12 +551,7 @@ body {
   gap: 6px;
 }
 
-.edu-test-area div {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-  padding-right: 2px;
-}
+
 
 .edu-test-area input {
   flex: 1;

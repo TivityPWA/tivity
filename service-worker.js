@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tivity-v1';
+const CACHE_NAME = 'tivity-v2';
 const ASSETS = [
   './',
   './index.html',
