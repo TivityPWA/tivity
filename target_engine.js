@@ -53,6 +53,10 @@ async function initialCloudPull() {
             localStorage.setItem('journalDefaultTags', JSON.stringify(doc.data().defaultTags));
         } else if (doc.id === 'education') {
             localStorage.setItem('eduCategories', JSON.stringify(doc.data().cats));
+        } else if (doc.id === 'notepad') {
+            localStorage.setItem('quickNotepadData', doc.data().notes || '');
+            const np = document.getElementById('quick-notepad');
+            if (np && !np.matches(':focus')) np.value = doc.data().notes || '';
         }
     });
     
@@ -514,7 +518,8 @@ window.exportData = () => {
         journalTasks: getTasks(),
         journalPriorities: JSON.parse(localStorage.getItem('journalPriorities')),
         journalDefaultTags: JSON.parse(localStorage.getItem('journalDefaultTags')),
-        geminiApiKey: localStorage.getItem('geminiApiKey')
+        geminiApiKey: localStorage.getItem('geminiApiKey'),
+        quickNotepadData: localStorage.getItem('quickNotepadData')
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -541,6 +546,7 @@ window.importData = (event) => {
             if (data.journalPriorities) localStorage.setItem('journalPriorities', JSON.stringify(data.journalPriorities));
             if (data.journalDefaultTags) localStorage.setItem('journalDefaultTags', JSON.stringify(data.journalDefaultTags));
             if (data.geminiApiKey) localStorage.setItem('geminiApiKey', data.geminiApiKey);
+            if (data.quickNotepadData !== undefined) localStorage.setItem('quickNotepadData', data.quickNotepadData);
             
             alert('DATA IMPORTED SUCCESSFULLY! REFRESHING...');
             window.location.reload();
@@ -1942,6 +1948,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const saveNotepad = () => {
         localStorage.setItem('quickNotepadData', notepad.value);
+        if (typeof syncToCloud === 'function') {
+            syncToCloud("settings", "notepad", { notes: notepad.value });
+        }
     };
 
     // Auto-save logic
