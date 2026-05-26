@@ -67,17 +67,89 @@ async function initialCloudPull() {
 function subscribeToCloud() {
     if (!window.firebaseDB) return;
     const { collection, onSnapshot } = window.firestore;
-    
-    // Watch Tasks
-    onSnapshot(collection(window.firebaseDB, "users", SYNC_ID, "tasks"), (snapshot) => {
-        const tasks = [];
-        snapshot.forEach(doc => tasks.push(doc.data()));
-        if (tasks.length > 0) {
+
+    // ── Tasks ──────────────────────────────────────────────────────────────
+    // Use metadata to skip echoing back our OWN writes (prevents loops).
+    // The listener fires for remote changes AND for local commits.
+    // hasPendingWrites=true means the snapshot is our own local write still
+    // being sent to the server — skip it so we don't race with deleteDoc.
+    onSnapshot(
+        collection(window.firebaseDB, "users", SYNC_ID, "tasks"),
+        { includeMetadataChanges: true },
+        (snapshot) => {
+            // Skip if this snapshot only reflects our own pending local writes
+            if (snapshot.metadata.hasPendingWrites) return;
+
+            const tasks = [];
+            snapshot.forEach(doc => tasks.push(doc.data()));
+            // Always save — even empty arrays — so deletions are honoured
             localStorage.setItem('journalTasks', JSON.stringify(tasks));
             renderTasks();
+            renderCompletedTasks();
             if (typeof renderCalendar === 'function') renderCalendar();
         }
-    });
+    );
+
+    // ── Journal Entries ───────────────────────────────────────────────────
+    onSnapshot(
+        collection(window.firebaseDB, "users", SYNC_ID, "entries"),
+        { includeMetadataChanges: true },
+        (snapshot) => {
+            if (snapshot.metadata.hasPendingWrites) return;
+            const entries = {};
+            snapshot.forEach(doc => { entries[doc.id] = doc.data(); });
+            localStorage.setItem('journalEntries', JSON.stringify(entries));
+            const historyTab = document.getElementById('history-tab');
+            if (historyTab && historyTab.classList.contains('active')) {
+                renderHistory();
+            }
+        }
+    );
+
+    // ── Settings (priorities, tags, notepad, education cats) ─────────────
+    onSnapshot(
+        collection(window.firebaseDB, "users", SYNC_ID, "settings"),
+        { includeMetadataChanges: true },
+        (snapshot) => {
+            if (snapshot.metadata.hasPendingWrites) return;
+            snapshot.docChanges().forEach(change => {
+                const d = change.doc;
+                if (d.id === 'priorities') {
+                    localStorage.setItem('journalPriorities', JSON.stringify(d.data().priorities));
+                    priorities = d.data().priorities;
+                    renderPriorityUI();
+                    renderTasks();
+                } else if (d.id === 'tags') {
+                    localStorage.setItem('journalDefaultTags', JSON.stringify(d.data().defaultTags));
+                    defaultTags = d.data().defaultTags;
+                    renderTagUI();
+                } else if (d.id === 'notepad') {
+                    const notes = d.data().notes || '';
+                    localStorage.setItem('quickNotepadData', notes);
+                    const np = document.getElementById('quick-notepad');
+                    if (np && !np.matches(':focus')) np.value = notes;
+                } else if (d.id === 'education') {
+                    localStorage.setItem('eduCategories', JSON.stringify(d.data().cats));
+                    if (typeof renderEduCategories === 'function') renderEduCategories();
+                }
+            });
+        }
+    );
+
+    // ── Subjects (Education tab) ──────────────────────────────────────────
+    onSnapshot(
+        collection(window.firebaseDB, "users", SYNC_ID, "subjects"),
+        { includeMetadataChanges: true },
+        (snapshot) => {
+            if (snapshot.metadata.hasPendingWrites) return;
+            const subjects = [];
+            snapshot.forEach(doc => subjects.push(doc.data()));
+            localStorage.setItem('journalSubjects', JSON.stringify(subjects));
+            if (typeof renderSubjects === 'function') renderSubjects();
+        }
+    );
+
+    console.log("TIVITY: Real-time listeners active on all collections.");
 }
 // Sync UI Helpers
 window.copySyncID = () => {
@@ -151,14 +223,13 @@ function getTasks() {
 }
 
 function saveTasks(tasks) {
+    // ONLY write to localStorage here.
+    // Each action (add, edit, toggleTask, deleteTask) is responsible for
+    // its own Firestore write/delete so we never accidentally resurrect
+    // a deleted document by re-uploading the full array.
     localStorage.setItem('journalTasks', JSON.stringify(tasks));
     if (typeof renderCalendar === 'function') renderCalendar();
     checkDueDates();
-    
-    // Batch sync tasks to cloud (more efficient for many tasks)
-    tasks.forEach(task => {
-        if (task.id) syncToCloud("tasks", task.id, task);
-    });
 }
 
 function renderPriorityUI() {
@@ -444,6 +515,7 @@ window.saveEdit = (id) => {
         task.tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
         
         saveTasks(tasks);
+        syncToCloud("tasks", task.id, task);
         const filter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
         renderTasks(filter);
         renderCompletedTasks();
@@ -507,6 +579,7 @@ window.pushTask = (id) => {
         
         task.dueDate = nextDay.toISOString().split('T')[0];
         saveTasks(tasks);
+        syncToCloud("tasks", task.id, task);
         const filter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
         renderTasks(filter);
     }
@@ -797,6 +870,8 @@ function initDragAndDrop() {
             if (t) t.order = item.order;
         });
         saveTasks(allTasks);
+        // Sync all reordered tasks
+        allTasks.forEach(t => { if (t.id) syncToCloud("tasks", t.id, t); });
     });
 }
 
@@ -825,6 +900,7 @@ window.cyclePriority = (taskId) => {
         const nextIndex = (currentIndex + 1) % priorities.length;
         task.priority = priorities[nextIndex].id;
         saveTasks(tasks);
+        syncToCloud("tasks", task.id, task);
         renderTasks(document.querySelector('.filter-btn.active').dataset.filter);
     }
 };
@@ -835,6 +911,7 @@ window.toggleTask = (id) => {
     if (task) {
         task.done = !task.done;
         saveTasks(tasks);
+        syncToCloud("tasks", task.id, task);
         const activeTab = document.querySelector('.nav-btn.active').dataset.tab;
         if (activeTab === 'todo-tab') {
             renderTasks(document.querySelector('.filter-btn.active').dataset.filter);
@@ -843,10 +920,26 @@ window.toggleTask = (id) => {
     }
 };
 
-window.deleteTask = (id) => {
+// Delete task locally and from Firestore
+window.deleteTask = async (id) => {
+    // Remove from local storage
     let tasks = getTasks();
+    const beforeCount = tasks.length;
     tasks = tasks.filter(t => t.id !== id);
+    if (tasks.length === beforeCount) {
+        console.warn('TIVITY: deleteTask called for unknown id', id);
+        return;
+    }
     saveTasks(tasks);
+    // Sync deletion to Firebase by deleting the specific document
+    if (typeof syncToCloud === 'function' && window.firebaseDB) {
+        try {
+            const { doc, deleteDoc } = window.firestore;
+            await deleteDoc(doc(window.firebaseDB, "users", SYNC_ID, "tasks", id));
+        } catch (e) {
+            console.error('TIVITY: Firestore delete error', e);
+        }
+    }
     const activeTab = document.querySelector('.nav-btn.active').dataset.tab;
     if (activeTab === 'todo-tab') {
         renderTasks(document.querySelector('.filter-btn.active').dataset.filter);
@@ -1015,7 +1108,7 @@ function initApp() {
             const tags = tagsInput ? [tagsInput.trim()] : [];
             
             const tasks = getTasks();
-            tasks.push({
+            const newTask = {
                 id: Date.now().toString(),
                 text,
                 priority,
@@ -1024,9 +1117,11 @@ function initApp() {
                 description,
                 done: false,
                 order: tasks.length
-            });
+            };
+            tasks.push(newTask);
             
             saveTasks(tasks);
+            syncToCloud("tasks", newTask.id, newTask);
             todoForm.reset();
             renderTasks();
 
@@ -1371,13 +1466,27 @@ function getSubjects() {
 
 function saveSubjects(subjects) {
     localStorage.setItem('journalSubjects', JSON.stringify(subjects));
+    // Sync each subject document to Firestore
+    subjects.forEach(s => {
+        if (s.id) syncToCloud("subjects", s.id, s);
+    });
 }
 
-window.deleteSubject = (id) => {
+window.deleteSubject = async (id) => {
     let subjects = getSubjects();
     subjects = subjects.filter(s => s.id !== id);
-    saveSubjects(subjects);
+    // Save locally first (without syncing — we handle Firestore below)
+    localStorage.setItem('journalSubjects', JSON.stringify(subjects));
     renderSubjects();
+    // Delete the specific Firestore document
+    if (window.firebaseDB) {
+        try {
+            const { doc, deleteDoc } = window.firestore;
+            await deleteDoc(doc(window.firebaseDB, "users", SYNC_ID, "subjects", id));
+        } catch (e) {
+            console.error('TIVITY: Firestore subject delete error', e);
+        }
+    }
 };
 
 window.toggleSubject = (id) => {
@@ -1385,7 +1494,9 @@ window.toggleSubject = (id) => {
     let s = subjects.find(s => s.id === id);
     if (s) {
         s.done = !s.done;
-        saveSubjects(subjects);
+        localStorage.setItem('journalSubjects', JSON.stringify(subjects));
+        // Sync only the toggled document
+        syncToCloud("subjects", s.id, s);
         renderSubjects();
     }
 };
