@@ -767,19 +767,19 @@ window.renderTagDashboard = () => {
 
         let html = '';
         if (viewMode === 'yearly') {
-            html += `<div class="month-title-mini">${monthNames[mMonth]}</div>`;
+            html += `<div class="month-label-mini">${monthNames[mMonth]}</div>`;
         }
         
-        html += '<div class="calendar-grid">';
+        html += '<div class="cal-grid-mini">';
         const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-        daysOfWeek.forEach(d => html += `<div class="cal-header">${d}</div>`);
+        daysOfWeek.forEach(d => html += `<div class="cal-day-mini" style="border:none; border-bottom:2px solid #000; background:transparent;">${d}</div>`);
         
         for (let i = 0; i < firstDay; i++) {
-            html += `<div class="cal-day empty"></div>`;
+            html += `<div class="cal-day-mini empty"></div>`;
         }
         for (let i = 1; i <= daysInMonth; i++) {
             const status = dayStatuses[i] || '';
-            html += `<div class="cal-day ${status}">${viewMode === 'single' ? i : ''}</div>`;
+            html += `<div class="cal-day-mini ${status}">${viewMode === 'single' ? i : ''}</div>`;
         }
         html += '</div>';
         return html;
@@ -790,22 +790,22 @@ window.renderTagDashboard = () => {
 
     if (viewMode === 'single') {
         calHeaderHtml = `
-            <div class="calendar-controls">
-                <button class="cal-nav-btn" onclick="changeDashboardMonth(-1)">&larr; PREV</button>
-                <div class="chart-title" style="margin-bottom:0;">${monthNames[month]} ${year}</div>
-                <button class="cal-nav-btn" onclick="changeDashboardMonth(1)">NEXT &rarr;</button>
+            <div class="calendar-heatmap-controls">
+                <button class="heatmap-nav-btn" onclick="changeDashboardMonth(-1)">&larr; PREV</button>
+                <div style="font-weight:900; text-transform:uppercase; font-size:1.1rem;">${monthNames[month]} ${year}</div>
+                <button class="heatmap-nav-btn" onclick="changeDashboardMonth(1)">NEXT &rarr;</button>
             </div>
-            <button class="cal-nav-btn" style="width:100%; margin-bottom:20px;" onclick="toggleDashboardView()">VIEW ALL 12 MONTHS</button>
+            <button class="submit-btn" style="width:100%; margin-bottom:20px; font-size:0.8rem; padding:8px;" onclick="toggleDashboardView()">VIEW ALL 12 MONTHS</button>
         `;
-        calContentHtml = `<div class="calendar-single-view">${generateMonthHtml(year, month)}</div>`;
+        calContentHtml = `<div>${generateMonthHtml(year, month)}</div>`;
     } else {
         calHeaderHtml = `
-            <div class="calendar-controls" style="justify-content:center;">
-                <div class="chart-title" style="margin-bottom:0;">${year} YEAR IN REVIEW</div>
+            <div class="calendar-heatmap-controls" style="justify-content:center;">
+                <div style="font-weight:900; text-transform:uppercase; font-size:1.1rem;">${year} YEAR IN REVIEW</div>
             </div>
-            <button class="cal-nav-btn" style="width:100%; margin-bottom:20px;" onclick="toggleDashboardView()">BACK TO SINGLE MONTH</button>
+            <button class="submit-btn" style="width:100%; margin-bottom:20px; font-size:0.8rem; padding:8px; background:var(--surface);" onclick="toggleDashboardView()">BACK TO SINGLE MONTH</button>
         `;
-        calContentHtml = '<div class="calendar-yearly-view">';
+        calContentHtml = '<div class="yearly-heatmap-grid">';
         for (let m = 0; m < 12; m++) {
             calContentHtml += `<div>${generateMonthHtml(year, m)}</div>`;
         }
@@ -814,27 +814,32 @@ window.renderTagDashboard = () => {
 
     // --- Render Final HTML ---
     document.getElementById('tag-dashboard').innerHTML = `
-        <div class="dashboard-summary">
-            <div class="summary-box success">
-                <span class="summary-value">${completed}</span>
-                <span class="summary-label">Completed</span>
+        <div class="dashboard-wrapper">
+            <div class="dashboard-summary-grid">
+                <div class="stat-card success-theme">
+                    <span class="stat-value">${completed}</span>
+                    <span class="stat-label">Tasks Completed</span>
+                </div>
+                <div class="stat-card danger-theme">
+                    <span class="stat-value">${missed}</span>
+                    <span class="stat-label">Tasks Missed</span>
+                </div>
             </div>
-            <div class="summary-box danger">
-                <span class="summary-value">${missed}</span>
-                <span class="summary-label">Missed</span>
-            </div>
-        </div>
 
-        <div class="chart-container">
-            <div class="chart-title">Monthly History (${currentYear})</div>
-            <div class="neo-barchart">
-                ${barHtml}
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <span>Monthly Output</span>
+                    <span>${currentYear}</span>
+                </div>
+                <div class="neo-barchart">
+                    ${barHtml}
+                </div>
             </div>
-        </div>
 
-        <div class="calendar-heatmap">
-            ${calHeaderHtml}
-            ${calContentHtml}
+            <div class="heatmap-card">
+                ${calHeaderHtml}
+                ${calContentHtml}
+            </div>
         </div>
     `;
 };
