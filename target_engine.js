@@ -190,13 +190,24 @@ function saveEntry(entry) {
 
 // To-Do Logic & State
 let priorities = JSON.parse(localStorage.getItem('journalPriorities')) || [
-    { id: 'today', name: 'TODAY', color: '#ff0055' },
-    { id: 'level-1', name: 'LEVEL 1', color: '#ff6b00' },
-    { id: 'level-2', name: 'LEVEL 2', color: '#ffbe0b' },
-    { id: 'level-3', name: 'LEVEL 3', color: '#06d6a0' },
-    { id: 'future', name: 'FUTURE', color: '#8338ec' },
-    { id: 'unimportant', name: 'UNIMPORTANT', color: '#8ecae6' }
+    { id: 'today', name: 'TODAY', color: '#FFE2DD' },
+    { id: 'level-1', name: 'LEVEL 1', color: '#FADEC9' },
+    { id: 'level-2', name: 'LEVEL 2', color: '#FDECC8' },
+    { id: 'level-3', name: 'LEVEL 3', color: '#DBEDDB' },
+    { id: 'future', name: 'FUTURE', color: '#D3E5EF' },
+    { id: 'unimportant', name: 'UNIMPORTANT', color: '#E3E2E0' }
 ];
+
+if (priorities.length > 0 && priorities[0].color === '#ff0055') {
+    priorities[0].color = '#FFE2DD';
+    if(priorities[1]) priorities[1].color = '#FADEC9';
+    if(priorities[2]) priorities[2].color = '#FDECC8';
+    if(priorities[3]) priorities[3].color = '#DBEDDB';
+    if(priorities[4]) priorities[4].color = '#D3E5EF';
+    if(priorities[5]) priorities[5].color = '#E3E2E0';
+    localStorage.setItem('journalPriorities', JSON.stringify(priorities));
+    if (typeof syncToCloud === 'function') syncToCloud('settings', 'priorities', { priorities });
+}
 
 let defaultTags = JSON.parse(localStorage.getItem('journalDefaultTags')) || ['WORK', 'HEALTH', 'URGENT', 'LIFE', 'CODE'];
 
@@ -244,42 +255,27 @@ function renderPriorityUI() {
     if (filterContainer) {
         const activeFilter = filterContainer.querySelector('.filter-btn.active')?.getAttribute('data-filter') || 'all';
         
-        // Build the HTML for the MENU button and the collapsed list
         filterContainer.innerHTML = `
-            <div style="width:100%; text-align:left; margin-bottom:10px;">
-                <button id="toggle-menu-btn" class="submit-btn" style="width:auto; padding:4px 10px; font-size:0.65rem; background:#000; color:#fff;">MENU</button>
-            </div>
-            <div id="todo-filter-list" class="hidden" style="display:flex; flex-wrap:wrap; gap:8px; padding:12px; border:2px solid #000; background:#f8f8f8; margin-bottom:15px; box-shadow: 4px 4px 0 #000;">
-                <button class="filter-btn ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">ALL</button>
-                <button id="toggle-todo-tools-btn" class="filter-btn" style="background:#000; color:#fff; border-color:#000;">EDIT TOOLS</button>
-                ${priorities.map(p => `<button class="filter-btn ${activeFilter === p.id ? 'active' : ''}" data-filter="${p.id}" style="border-color:${p.color}">${p.name}</button>`).join('')}
+            <div id="todo-filter-list" style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:10px 0; margin-bottom:15px; border-bottom:1px solid var(--border-color); width:100%;">
+                <button class="filter-btn ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+                ${priorities.map(p => `<button class="filter-btn ${activeFilter === p.id ? 'active' : ''}" data-filter="${p.id}">${p.name}</button>`).join('')}
+                <div style="flex:1;"></div>
+                <button id="toggle-todo-tools-btn" class="filter-btn" style="color:var(--muted-text);">Options...</button>
             </div>
         `;
         
-        // 1. Menu Toggle Logic
-        const menuBtn = document.getElementById('toggle-menu-btn');
         const filterList = document.getElementById('todo-filter-list');
-        if (menuBtn && filterList) {
-            menuBtn.onclick = (e) => {
-                e.preventDefault();
-                filterList.classList.toggle('hidden');
-                menuBtn.textContent = filterList.classList.contains('hidden') ? 'MENU' : 'CLOSE MENU';
-            };
-        }
 
-        // 2. Filter Button Logic
-        filterList.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
-            btn.onclick = () => {
-                filterList.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                renderTasks(btn.getAttribute('data-filter'));
-                
-                // Auto-close menu on selection
-                filterList.classList.add('hidden');
-                menuBtn.textContent = 'MENU';
-                console.log("TIVITY: Filter Changed ->", btn.getAttribute('data-filter'));
-            };
-        });
+        // Filter Button Logic
+        if (filterList) {
+            filterList.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+                btn.onclick = () => {
+                    filterList.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderTasks(btn.getAttribute('data-filter'));
+                };
+            });
+        }
 
         // 3. Edit Toggle Logic
         const toggleBtn = document.getElementById('toggle-todo-tools-btn');
@@ -380,9 +376,9 @@ function renderTasks(filter = 'all', containerId = 'todo-list', showDone = false
 
     if (filteredTasks.length === 0) {
         list.innerHTML = `
-            <div class="todo-item" style="border-style: dashed; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
-                <p style="margin-bottom: 10px;">No ${showDone ? 'completed' : 'active'} tasks found. ${showDone ? 'Get to work!' : 'Keep crushing it!'}</p>
-                ${!showDone ? `<button onclick="window.toggleTaskForm()" style="background:var(--success); color:#000; border:2px solid #000; border-radius:50%; width:40px; height:40px; font-size:1.5rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:2px 2px 0 #000; margin-top:10px;">+</button>` : ''}
+            <div class="todo-item" style="border-bottom: 1px solid var(--border-color); flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+                <p style="margin-bottom: 10px; color: var(--muted-text);">No ${showDone ? 'completed' : 'active'} tasks found. ${showDone ? 'Get to work!' : 'Keep crushing it!'}</p>
+                ${!showDone ? `<button class="submit-btn" onclick="window.toggleTaskForm()" style="margin-top:10px;">+ New</button>` : ''}
             </div>
         `;
         return;
@@ -403,16 +399,16 @@ function renderTasks(filter = 'all', containerId = 'todo-list', showDone = false
 
         item.innerHTML = `
             <div class="todo-main-row">
+                <input type="checkbox" onchange="toggleTask('${task.id}')" ${task.done ? 'checked' : ''}>
                 <div class="todo-info">
+                    <span class="todo-text" style="${task.done ? 'text-decoration: line-through; color: var(--muted-text);' : ''}">${task.text}</span>
                     <span class="todo-label" style="background:${priority.color}" onclick="cyclePriority('${task.id}')">${priority.name}</span>
-                    <span class="todo-text">${task.text}</span>
-                    ${task.dueDate ? `<span class="todo-due">BY: ${task.dueDate}</span>` : ''}
+                    ${task.dueDate ? `<span class="todo-due">${task.dueDate}</span>` : ''}
                 </div>
                 <div class="todo-actions">
-                    ${!task.done ? `<button class="todo-btn" onclick="pushTask('${task.id}')" title="Push to Next Day">NEXT DAY →</button>` : ''}
-                    <button class="todo-btn" onclick="toggleDetails('${task.id}')">DETAILS</button>
-                    <button class="todo-btn" onclick="toggleTask('${task.id}')">${task.done ? 'RESTORE' : 'DONE'}</button>
-                    <button class="todo-btn" onclick="deleteTask('${task.id}')">X</button>
+                    ${!task.done ? `<button class="todo-btn" onclick="pushTask('${task.id}')" title="Push to Next Day">→</button>` : ''}
+                    <button class="todo-btn" onclick="toggleDetails('${task.id}')">...</button>
+                    <button class="todo-btn" onclick="deleteTask('${task.id}')">×</button>
                 </div>
             </div>
             <div id="details-${task.id}" class="todo-details hidden">
@@ -437,9 +433,9 @@ function renderTasks(filter = 'all', containerId = 'todo-list', showDone = false
     // Add contextual '+' button at the end if not showing completed
     if (!showDone) {
         const addBtnContainer = document.createElement('div');
-        addBtnContainer.style.textAlign = 'center';
-        addBtnContainer.style.marginTop = '25px';
-        addBtnContainer.innerHTML = `<button onclick="window.toggleTaskForm()" style="background:var(--success); color:#000; border:2px solid #000; border-radius:50%; width:40px; height:40px; font-size:1.5rem; font-weight:bold; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; box-shadow:2px 2px 0 #000;">+</button>`;
+        addBtnContainer.style.textAlign = 'left';
+        addBtnContainer.style.marginTop = '10px';
+        addBtnContainer.innerHTML = `<button class="submit-btn" onclick="window.toggleTaskForm()" style="border:none; box-shadow:none; color:var(--muted-text); padding-left:0;">+ New</button>`;
         list.appendChild(addBtnContainer);
     }
 }
@@ -772,7 +768,7 @@ window.renderTagDashboard = () => {
         
         html += '<div class="cal-grid-mini">';
         const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-        daysOfWeek.forEach(d => html += `<div class="cal-day-mini" style="border:none; border-bottom:2px solid #000; background:transparent;">${d}</div>`);
+        daysOfWeek.forEach(d => html += `<div class="cal-day-mini" style="font-weight:600; color:var(--muted-text); background:transparent;">${d}</div>`);
         
         for (let i = 0; i < firstDay; i++) {
             html += `<div class="cal-day-mini empty"></div>`;
@@ -791,19 +787,21 @@ window.renderTagDashboard = () => {
     if (viewMode === 'single') {
         calHeaderHtml = `
             <div class="calendar-heatmap-controls">
-                <button class="heatmap-nav-btn" onclick="changeDashboardMonth(-1)">&larr; PREV</button>
-                <div style="font-weight:900; text-transform:uppercase; font-size:1.1rem;">${monthNames[month]} ${year}</div>
-                <button class="heatmap-nav-btn" onclick="changeDashboardMonth(1)">NEXT &rarr;</button>
+                <button class="heatmap-nav-btn" onclick="changeDashboardMonth(-1)">&larr; Prev</button>
+                <div style="font-weight:600; font-size:1rem; color:var(--text);">${monthNames[month]} ${year}</div>
+                <button class="heatmap-nav-btn" onclick="changeDashboardMonth(1)">Next &rarr;</button>
             </div>
-            <button class="submit-btn" style="width:100%; margin-bottom:20px; font-size:0.8rem; padding:8px;" onclick="toggleDashboardView()">VIEW ALL 12 MONTHS</button>
+            <div style="text-align:right; margin-bottom:20px;">
+                <button class="todo-btn" style="border:none; color:var(--muted-text); text-decoration:underline; font-size:0.8rem; padding:0;" onclick="toggleDashboardView()">View all 12 months</button>
+            </div>
         `;
         calContentHtml = `<div>${generateMonthHtml(year, month)}</div>`;
     } else {
         calHeaderHtml = `
-            <div class="calendar-heatmap-controls" style="justify-content:center;">
-                <div style="font-weight:900; text-transform:uppercase; font-size:1.1rem;">${year} YEAR IN REVIEW</div>
+            <div class="calendar-heatmap-controls" style="justify-content:space-between;">
+                <div style="font-weight:600; font-size:1rem; color:var(--text);">${year} Overview</div>
+                <button class="todo-btn" style="border:none; color:var(--muted-text); text-decoration:underline; font-size:0.8rem; padding:0;" onclick="toggleDashboardView()">Back to single month</button>
             </div>
-            <button class="submit-btn" style="width:100%; margin-bottom:20px; font-size:0.8rem; padding:8px; background:var(--surface);" onclick="toggleDashboardView()">BACK TO SINGLE MONTH</button>
         `;
         calContentHtml = '<div class="yearly-heatmap-grid">';
         for (let m = 0; m < 12; m++) {
@@ -2063,21 +2061,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const saveNotepad = () => {
-        localStorage.setItem('quickNotepadData', notepad.value);
-        if (typeof syncToCloud === 'function') {
-            syncToCloud("settings", "notepad", { notes: notepad.value });
+        const val = notepad.value || '';
+        localStorage.setItem('quickNotepadData', val);
+        try {
+            syncToCloud("settings", "notepad", { notes: val });
+        } catch (e) {
+            console.error("TIVITY: Error syncing notepad", e);
         }
     };
 
     // Auto-save logic
     let timeoutId;
     notepad.addEventListener('input', () => {
-        status.textContent = 'Saving...';
+        if (status) status.textContent = 'Saving...';
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
             saveNotepad();
-            status.textContent = 'Saved';
-            setTimeout(() => { status.textContent = ''; }, 2000);
+            if (status) {
+                status.textContent = 'Saved';
+                setTimeout(() => { status.textContent = ''; }, 2000);
+            }
         }, 800);
     });
 
