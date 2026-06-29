@@ -82,7 +82,18 @@ function subscribeToCloud() {
 
             const tasks = [];
             snapshot.forEach(doc => tasks.push(doc.data()));
-            // Always save — even empty arrays — so deletions are honoured
+
+            // SAFETY: if cloud is empty but we have local data, push local UP
+            // instead of wiping it. This prevents data loss on first sync.
+            if (tasks.length === 0) {
+                const localTasks = getTasks();
+                if (localTasks.length > 0) {
+                    console.log("TIVITY: Cloud tasks empty but local data exists — pushing local up.");
+                    localTasks.forEach(t => { if (t.id) syncToCloud("tasks", t.id, t); });
+                    return; // keep localStorage as-is
+                }
+            }
+
             localStorage.setItem('journalTasks', JSON.stringify(tasks));
             renderTasks();
             renderCompletedTasks();
@@ -98,6 +109,17 @@ function subscribeToCloud() {
             if (snapshot.metadata.hasPendingWrites) return;
             const entries = {};
             snapshot.forEach(doc => { entries[doc.id] = doc.data(); });
+
+            // SAFETY: if cloud is empty but local has entries, push local up
+            if (Object.keys(entries).length === 0) {
+                const localEntries = getEntries();
+                if (Object.keys(localEntries).length > 0) {
+                    console.log("TIVITY: Cloud entries empty but local data exists — pushing local up.");
+                    Object.values(localEntries).forEach(e => { if (e.date) syncToCloud("entries", e.date, e); });
+                    return;
+                }
+            }
+
             localStorage.setItem('journalEntries', JSON.stringify(entries));
             const historyTab = document.getElementById('history-tab');
             if (historyTab && historyTab.classList.contains('active')) {
@@ -144,6 +166,17 @@ function subscribeToCloud() {
             if (snapshot.metadata.hasPendingWrites) return;
             const subjects = [];
             snapshot.forEach(doc => subjects.push(doc.data()));
+
+            // SAFETY: if cloud is empty but local has subjects, push local up
+            if (subjects.length === 0) {
+                const localSubjects = getSubjects();
+                if (localSubjects.length > 0) {
+                    console.log("TIVITY: Cloud subjects empty but local data exists — pushing local up.");
+                    localSubjects.forEach(s => { if (s.id) syncToCloud("subjects", s.id, s); });
+                    return;
+                }
+            }
+
             localStorage.setItem('journalSubjects', JSON.stringify(subjects));
             if (typeof renderSubjects === 'function') renderSubjects();
         }
