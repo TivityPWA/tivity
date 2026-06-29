@@ -13,7 +13,7 @@
     
     <!-- Use Google Fonts for dynamic aesthetics: Space Grotesk is great for brutalism -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
     <div class="app-container">
@@ -24,41 +24,41 @@
         </header>
 
         <!-- GLOBAL KEY & DATA PANEL -->
-        <div id="key-data-container" class="hidden" style="position:absolute; top:50px; left:10px; margin: 0; background:var(--surface); border:1px solid var(--border-color); border-radius:6px; z-index:1000; padding:15px; box-shadow:0 4px 12px rgba(0,0,0,0.1); width:calc(100% - 20px); max-width:400px;">
+        <div id="key-data-container" class="hidden" style="margin: 10px 15px; background:#fff; z-index:1000;">
             <!-- AI API SETUP -->
-            <div class="notepad-card" style="margin-bottom:20px;">
+            <div class="notepad-card" style="background:#f4f4f4; border:3px solid #000; margin-bottom:20px;">
                 <div class="field-group" style="margin-bottom:0;">
-                    <label for="gemini-key">GEMINI API KEY</label>
-                    <input type="password" id="gemini-key" placeholder="Paste your API key here..." required style="width:100%; box-sizing:border-box; margin-top:5px;">
-                    <p style="font-size:0.75rem; margin-top:10px; color:var(--muted-text);"><em>Required for AI Analysis. Stays local.</em></p>
+                    <label for="gemini-key" style="background:var(--secondary);">GEMINI API KEY</label>
+                    <input type="password" id="gemini-key" placeholder="Paste your API key here..." required style="width:100%; box-sizing:border-box; margin-top:5px; padding:12px; border:2px solid #000;">
+                    <p style="font-size:0.7rem; margin-top:10px; font-weight:bold;"><em>Required for AI Analysis. Stays local.</em></p>
                 </div>
             </div>
 
             <!-- CLOUD SYNC -->
-            <div class="cloud-sync-card">
+            <div class="cloud-sync-card" style="background:#fff; border:3px solid #5500ff; padding:15px;">
                 <div class="cloud-sync-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h2 style="margin:0; font-size:1.1rem; font-weight:600;">CLOUD SYNC</h2>
-                    <span id="cloud-status-badge" style="background:#DBEDDB; color:#37352F; padding:2px 6px; border-radius:3px; font-weight:500; font-size:0.75rem;">CONNECTED</span>
+                    <h2 style="margin:0; color:#5500ff; font-size:1.1rem;">CLOUD SYNC</h2>
+                    <span id="cloud-status-badge" style="background:#5500ff; color:#fff; padding:4px 8px; font-weight:bold; font-size:0.6rem;">CONNECTED</span>
                 </div>
-                <div style="background:var(--surface); padding:10px; border:1px solid var(--border-color); border-radius:4px; margin-bottom:10px;">
-                    <label style="font-size:0.75rem; font-weight:500; color:var(--muted-text);">Private Sync ID</label>
+                <div style="background:#f0f0ff; padding:10px; border:2px solid #5500ff; margin-bottom:10px;">
+                    <label style="font-size:0.6rem; font-weight:900; color:#5500ff; text-transform:uppercase;">Private Sync ID</label>
                     <div style="display:flex; gap:5px; margin-top:5px;">
-                        <input type="text" id="sync-id-display" readonly style="flex:1; min-width:0; padding:6px; font-family:monospace; font-size:0.85rem; border:1px solid var(--border-color); border-radius:3px; background:var(--bg-color);">
-                        <button class="submit-btn" onclick="copySyncID()">COPY</button>
+                        <input type="text" id="sync-id-display" readonly style="flex:1; min-width:0; padding:8px; font-family:monospace; font-size:0.75rem; border:1px solid #5500ff;">
+                        <button class="todo-btn" onclick="copySyncID()" style="background:#5500ff; color:#fff; font-size:0.7rem; padding:0 10px;">COPY</button>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px;">
-                    <button class="submit-btn" onclick="promptChangeSyncID()" style="flex:1;">CHANGE ID</button>
-                    <button class="submit-btn" onclick="location.reload()" style="flex:1;">REFRESH</button>
+                    <button class="todo-btn" onclick="promptChangeSyncID()" style="flex:1; background:#fff; border:1px solid #5500ff; font-size:0.7rem;">CHANGE ID</button>
+                    <button class="todo-btn" onclick="location.reload()" style="flex:1; background:#5500ff; color:#fff; font-size:0.7rem;">REFRESH</button>
                 </div>
             </div>
 
             <!-- MANUAL BACKUP -->
-            <div class="notepad-card" style="margin-top:20px; border-top:1px solid var(--border-color); padding-top:20px;">
-                <div style="font-size:0.85rem; font-weight:600; margin-bottom:10px; color:var(--muted-text);">MANUAL BACKUP (OFFLINE)</div>
+            <div class="notepad-card" style="margin-top:20px; background:#fff; border:3px solid #000;">
+                <div style="font-size:0.7rem; font-weight:900; letter-spacing:1px; margin-bottom:10px;">MANUAL BACKUP (OFFLINE)</div>
                 <div style="display:flex; gap:10px;">
-                    <button class="submit-btn" onclick="exportData()" style="flex:1;">⬇️ EXPORT</button>
-                    <button class="submit-btn" onclick="document.getElementById('import-file-input').click()" style="flex:1;">⬆️ IMPORT</button>
+                    <button onclick="exportData()" style="flex:1; background:#eee; border:2px solid #000; padding:10px; font-size:0.8rem; font-weight:bold;">⬇️ EXPORT</button>
+                    <button onclick="document.getElementById('import-file-input').click()" style="flex:1; background:var(--primary); border:2px solid #000; padding:10px; font-size:0.8rem; font-weight:bold;">⬆️ IMPORT</button>
                     <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importData(event)">
                 </div>
             </div>
@@ -88,16 +88,16 @@
             <!-- DAILY ENTRY TAB -->
             <section id="entry-tab" class="tab-content active">
                 <!-- QUICK NOTEPAD -->
-                <div class="notepad-card" style="border-bottom:1px solid var(--border-color); padding-bottom:15px; margin-bottom:20px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h2 style="margin:0; font-size:1.1rem; font-weight:600;">Quick Notepad</h2>
-                        <span id="notepad-status" style="font-size:0.8rem; color:var(--muted-text);"></span>
+                <div class="notepad-card" style="background:#fff; border:4px solid #000; padding:15px; margin-bottom:20px; box-shadow:8px 8px 0 #000;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed #000; padding-bottom:10px; margin-bottom:10px;">
+                        <h2 style="margin:0; font-size:1.5rem; text-transform:uppercase;">Quick Notepad</h2>
+                        <span id="notepad-status" style="font-size:0.8rem; font-weight:bold; color:var(--secondary);"></span>
                     </div>
-                    <textarea id="quick-notepad" rows="4" style="width:100%; box-sizing:border-box; border:none; resize:vertical; font-family:inherit; font-size:1rem; background:transparent; outline:none;" placeholder="Jot down ideas, scratchpad notes, or brain dumps here..."></textarea>
+                    <textarea id="quick-notepad" rows="4" style="width:100%; box-sizing:border-box; border:none; resize:vertical; font-family:inherit; font-size:1.1rem; background:transparent; outline:none;" placeholder="Jot down ideas, scratchpad notes, or brain dumps here..."></textarea>
                 </div>
 
                 <!-- TOGGLE BUTTON -->
-                <button id="toggle-form-btn" class="submit-btn" style="margin-bottom:20px;">+ New Journal Entry</button>
+                <button id="toggle-form-btn" class="submit-btn" style="background:var(--tertiary); color:white; margin-bottom:20px; font-size:1rem; padding:10px;">+ NEW JOURNAL ENTRY</button>
 
                 <div id="form-container" class="hidden">
                     <form id="daily-form" class="neo-form">
@@ -295,7 +295,7 @@
                         <div class="todo-form-extra">
                             <div class="field-group">
                                 <label for="todo-tags">Tag / Habit</label>
-                                <select id="todo-tags" class="tag-select">
+                                <select id="todo-tags" class="tag-select" style="padding:10px; border:2px solid #000; font-family:'Space Grotesk', sans-serif;">
                                     <option value="">No Tag</option>
                                     <!-- Options injected by JS -->
                                 </select>
@@ -306,8 +306,8 @@
                             </div>
                         </div>
                         <div style="display:flex; gap:10px; margin-bottom:25px;">
-                            <button type="submit" class="submit-btn" style="flex:1;">ADD TASK</button>
-                            <button type="button" class="submit-btn" style="flex:1;" onclick="window.toggleTaskForm()">CLOSE</button>
+                            <button type="submit" class="todo-add-btn" style="flex:1; margin:0;">ADD TASK</button>
+                            <button type="button" class="todo-add-btn" style="flex:1; margin:0; background:#eee; color:#000;" onclick="window.toggleTaskForm()">CLOSE</button>
                         </div>
                     </form>
                 </div>
@@ -319,12 +319,12 @@
                     </div>
                 </div>
 
-                <div style="margin-bottom: 20px;">
-                    <button id="toggle-completed-btn" class="todo-btn" style="color:var(--muted-text);">SHOW COMPLETED MISSIONS</button>
-                </div>
+
+
                 <div id="todo-tools-container" class="hidden" style="margin-bottom:20px; display:flex; flex-wrap:wrap; gap:8px;">
                     <button id="manage-labels-btn" class="todo-btn" style="flex:1;">MANAGE LABELS</button>
                     <button id="manage-tags-btn" class="todo-btn" style="flex:1;">MANAGE TAGS</button>
+                    <button id="toggle-completed-btn" class="todo-btn" style="flex:1; background:var(--secondary); color:#fff;">COMPLETED</button>
                 </div>
 
                 <div id="tag-manager" class="label-manager hidden">
@@ -332,14 +332,14 @@
                     <div id="default-tag-list" class="todo-tags" style="margin-bottom:20px;"></div>
                     <div class="field-group">
                         <input type="text" id="new-tag-input" placeholder="Enter new tag name...">
-                        <button id="add-tag-btn" class="submit-btn" style="margin-top:10px;">+ ADD TAG</button>
+                        <button id="add-tag-btn" class="todo-btn" style="background:var(--success); margin-top:10px;">+ ADD TAG</button>
                     </div>
                 </div>
 
                 <div id="label-manager" class="label-manager hidden">
                     <h3>Configure Your Priority Levels</h3>
                     <div id="label-list"></div>
-                    <button id="add-label-btn" class="submit-btn">+ NEW LABEL</button>
+                    <button id="add-label-btn" class="todo-btn" style="background:var(--success);">+ NEW LABEL</button>
                 </div>
 
                 <div id="todo-list" class="todo-list">
@@ -347,9 +347,9 @@
                 </div>
 
                 <div id="completed-section" class="hidden">
-                    <div class="todo-header" style="margin-top:30px; border-bottom:1px solid var(--border-color); padding-bottom:10px; margin-bottom:20px;">
-                        <h2 style="font-size:1.5rem; font-weight:600; margin:0;">Completed Missions</h2>
-                        <p style="color:var(--muted-text); margin:5px 0 0 0;">Archive of your crushed objectives.</p>
+                    <div class="todo-header" style="margin-top:50px; background:var(--secondary);">
+                        <h2>Completed Missions</h2>
+                        <p>Archive of your crushed objectives.</p>
                     </div>
                     <div id="completed-list" class="todo-list">
                         <!-- Completed tasks will be injected here -->
@@ -357,18 +357,18 @@
                 </div>
                 
                 <!-- CALENDAR TOGGLE -->
-                <div style="margin-top: 50px; padding-top: 20px; border-top:1px solid var(--border-color);">
-                    <button id="toggle-calendar-btn" class="submit-btn" style="width: auto;">CALENDAR VIEW</button>
+                <div style="margin-top: 50px; text-align: center; border-top: 4px solid #000; padding-top: 40px;">
+                    <button id="toggle-calendar-btn" class="submit-btn" style="width: auto; padding: 10px 25px; font-size: 0.9rem;">CALENDAR</button>
                 </div>
 
                 <!-- AERIAL VIEW CALENDAR -->
                 <div id="calendar-view" style="margin-top:20px; display: none;">
-                    <div class="todo-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                        <h2 style="margin:0; font-size:1.2rem;">Calendar</h2>
-                        <div style="display:flex; align-items:center;">
-                            <button id="cal-prev" class="submit-btn" style="padding:4px 10px;">&lt;</button>
-                            <span id="cal-month-year" style="font-weight:600; margin:0 15px; font-size:1rem;">Month Year</span>
-                            <button id="cal-next" class="submit-btn" style="padding:4px 10px;">&gt;</button>
+                    <div class="todo-header" style="background:#000; color:#fff; display:flex; justify-content:space-between; align-items:center;">
+                        <h2 style="margin:0;">Calendar</h2>
+                        <div>
+                            <button id="cal-prev" class="todo-btn" style="color:#000; padding:5px 15px;">&lt;</button>
+                            <span id="cal-month-year" style="font-weight:bold; margin:0 15px; font-size:1.2rem;">Month Year</span>
+                            <button id="cal-next" class="todo-btn" style="color:#000; padding:5px 15px;">&gt;</button>
                         </div>
                     </div>
                     <div class="calendar-grid" id="calendar-grid">
@@ -379,9 +379,9 @@
 
             <!-- STATS TAB -->
             <section id="stats-tab" class="tab-content">
-                <div class="todo-header" style="margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                    <h2 style="font-size:1.5rem; font-weight:600; margin:0;">Tag Performance</h2>
-                    <p style="color:var(--muted-text); margin:5px 0 0 0;">Track your wins by category.</p>
+                <div class="todo-header" style="background:var(--tertiary); color:#fff;">
+                    <h2>Tag Performance</h2>
+                    <p>Track your wins by category.</p>
                 </div>
                 <div id="tag-performance-selector" class="todo-tags" style="margin-top:20px; justify-content:center;">
                     <!-- Tag chips will be injected here -->
@@ -395,10 +395,7 @@
 
             <!-- HISTORY TAB -->
             <section id="history-tab" class="tab-content">
-                <div class="todo-header" style="margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                    <h2 style="font-size:1.5rem; font-weight:600; margin:0;">History Log</h2>
-                    <p style="color:var(--muted-text); margin:5px 0 0 0;">Review your past realities.</p>
-                </div>
+                <h2>History Log</h2>
                 <div id="history-list" class="history-grid">
                     <!-- Cards will be injected here -->
                 </div>
@@ -408,10 +405,10 @@
             <section id="analysis-tab" class="tab-content">
                 <div class="analysis-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <h2 style="margin:0; font-size:1.2rem; font-weight:600;">AI Pattern Recognition</h2>
-                        <span id="active-model-badge" style="background:var(--secondary); color:var(--text); padding:2px 8px; font-size:0.75rem; border-radius:3px;">NO MODEL DETECTED</span>
+                        <h2 style="margin:0;">AI Pattern Recognition</h2>
+                        <span id="active-model-badge" style="background:#000; color:#fff; padding:2px 8px; font-size:0.65rem; font-weight:bold; text-transform:uppercase; border:2px solid #000;">NO MODEL DETECTED</span>
                     </div>
-                    <p style="margin-top:0; color:var(--muted-text);">Aggregates your entries and uses Gemini to analyze patterns over time.</p>
+                    <p style="margin-top:0;">Aggregates your entries and uses Gemini to analyze patterns over time.</p>
                     
                     <div class="date-range-selector">
                         <div>
@@ -425,7 +422,7 @@
 
                     
                     <div style="display:flex; justify-content:center; margin-top:20px;">
-                        <button id="analyze-btn" class="submit-btn" style="width:100%; max-width:400px; margin-top:0;">ANALYZE PATTERNS</button>
+                        <button id="analyze-btn" class="analyze-btn" style="width:100%; max-width:400px; margin-top:0;">ANALYZE PATTERNS</button>
                     </div>
                     
                     <div id="analysis-result" class="analysis-result hidden">
@@ -443,9 +440,9 @@
 
             <!-- EDUCATION TAB -->
             <section id="education-tab" class="tab-content">
-                <div class="todo-header" style="margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
-                    <h2 style="font-size:1.5rem; font-weight:600; margin:0;">Education</h2>
-                    <p style="color:var(--muted-text); margin:5px 0 0 0;">Continuous learning and knowledge tracking.</p>
+                <div class="todo-header" style="background:var(--success); color:#000;">
+                    <h2>Education</h2>
+                    <p>Continuous learning and knowledge tracking.</p>
                 </div>
                 
                 <div id="education-sections-container">
@@ -454,7 +451,7 @@
 
                 <!-- General Add Button -->
                 <div style="margin-top:30px; text-align:center;">
-                    <button id="edu-add-custom-btn" class="submit-btn" style="width:100%; max-width:400px;" onclick="addCustomEducationSection()">+ ADD NEW CATEGORY</button>
+                    <button id="edu-add-custom-btn" class="todo-btn" style="width:100%; max-width:400px; border-style:dashed; padding:15px; font-size:1.2rem;" onclick="addCustomEducationSection()">+ ADD NEW EDUCATION CATEGORY</button>
                 </div>
             </section>
         </main>
@@ -487,6 +484,6 @@
         console.log("TIVITY: Firebase Cloud Brain Initialized.");
     </script>
 
-    <script src="target_engine.js?v=76"></script>
+    <script src="target_engine.js?v=71"></script>
 </body>
 </html>
